@@ -57,44 +57,44 @@ export const TopNav: React.FC<TopNavProps> = ({
   };
 
   return (
-    <header className="h-16 bg-[#101010] border-b border-[#2D2D2D] px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
+    <header className="h-14 lg:h-16 bg-[#101010] border-b border-[#2D2D2D] px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
       {/* Title section */}
       <div>
-        <h2 className="text-white font-bold text-lg tracking-tight">
+        <h2 className="text-white font-bold text-sm sm:text-base lg:text-lg tracking-tight">
           {pageTitles[currentPage]?.title || 'Trading Journal Pro'}
         </h2>
-        <p className="text-xs text-[#8B8B8B]">
+        <p className="text-[10px] sm:text-xs text-[#8B8B8B] truncate max-w-[200px] sm:max-w-none">
           {pageTitles[currentPage]?.subtitle || 'Offline Terminal'}
         </p>
       </div>
 
       {/* Middle Search & Alerts */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {/* Search Bar */}
         {(currentPage === 'journal' || currentPage === 'gallery') && (
-          <div className="relative w-64 hidden sm:block">
-            <Search className="w-4 h-4 text-[#777777] absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="relative w-36 sm:w-64 hidden sm:block">
+            <Search className="w-3.5 h-3.5 text-[#777777] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={handleSearch}
-              placeholder="Search pair, strategy, notes..."
-              className="w-full bg-[#111111] border border-[#2D2D2D] focus:border-[#FF7A00] rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-[#777777] outline-none transition-colors"
+              placeholder="Search pair, notes..."
+              className="w-full bg-[#111111] border border-[#2D2D2D] focus:border-[#FF7A00] rounded-lg pl-8 pr-2.5 py-1 text-xs text-white placeholder-[#777777] outline-none transition-colors"
             />
           </div>
         )}
 
         {/* Drawdown Risk Warning Badge */}
         {isDrawdownExceeded && (
-          <div className="flex items-center gap-2 bg-[#F44336]/15 border border-[#F44336]/40 text-[#F44336] px-3 py-1 rounded-lg text-xs font-semibold animate-pulse">
-            <ShieldAlert className="w-4 h-4" />
-            <span>Max Drawdown Exceeded ({currentDrawdown}%)</span>
+          <div className="flex items-center gap-1.5 bg-[#F44336]/15 border border-[#F44336]/40 text-[#F44336] px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg text-[10px] sm:text-xs font-semibold animate-pulse">
+            <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate max-w-[120px] sm:max-w-none">Max Drawdown ({currentDrawdown}%)</span>
           </div>
         )}
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* Clock */}
         <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-[#151515] border border-[#2D2D2D] rounded-lg text-xs text-[#B8B8B8] font-mono">
           <Clock className="w-3.5 h-3.5 text-[#FF7A00]" />
@@ -104,9 +104,9 @@ export const TopNav: React.FC<TopNavProps> = ({
         {/* Add Trade Button */}
         <button
           onClick={onOpenAddModal}
-          className="flex items-center gap-2 bg-[#FF7A00] hover:bg-[#FF8E26] text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all shadow-md shadow-[#FF7A00]/20 active:scale-95 cursor-pointer"
+          className="flex items-center gap-1.5 bg-[#FF7A00] hover:bg-[#FF8E26] text-white font-semibold text-xs px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition-all shadow-md shadow-[#FF7A00]/20 active:scale-95 cursor-pointer whitespace-nowrap"
         >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
           <span>Add Trade</span>
         </button>
       </div>

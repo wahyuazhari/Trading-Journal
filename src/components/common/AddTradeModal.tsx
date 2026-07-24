@@ -183,26 +183,26 @@ export const AddTradeModal: React.FC<AddTradeModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[16px] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[16px] w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-[#2D2D2D] flex items-center justify-between bg-[#111111]">
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-[#2D2D2D] flex items-center justify-between bg-[#111111]">
           <div>
-            <h3 className="text-lg font-bold text-white">
+            <h3 className="text-base sm:text-lg font-bold text-white">
               {initialTrade ? 'Edit Trade Record' : 'Record New Trade'}
             </h3>
-            <p className="text-xs text-[#8B8B8B]">Enter position details, risk metrics & chart analysis</p>
+            <p className="text-[10px] sm:text-xs text-[#8B8B8B]">Enter position details, risk metrics & chart analysis</p>
           </div>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-[#8B8B8B] hover:text-white hover:bg-[#202020] transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Modal Body Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="p-3.5 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1 text-xs sm:text-sm">
           {/* Row 1: Pair, Date, Time, Direction, Status */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>

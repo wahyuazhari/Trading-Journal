@@ -205,7 +205,7 @@ export default function App() {
         />
 
         {/* Dynamic Page Views */}
-        <main className="flex-1 p-6 overflow-y-auto max-w-[1600px] w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-5 lg:p-6 overflow-y-auto max-w-[1600px] w-full mx-auto">
           {currentPage === 'dashboard' && (
             <DashboardView
               trades={trades}

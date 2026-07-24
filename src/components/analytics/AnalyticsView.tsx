@@ -94,44 +94,44 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, riskSettin
           <span className="text-[10px] text-[#8B8B8B] uppercase block mb-1">Avg Risk:Reward</span>
           <span className="text-xl font-bold text-[#FF7A00] font-mono">1 : {stats.avgRR}</span>
         </div>
-        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-4">
-          <span className="text-[10px] text-[#8B8B8B] uppercase block mb-1">Average Win</span>
-          <span className="text-xl font-bold text-[#4CAF50] font-mono">{currencySymbol}{stats.avgWin}</span>
+        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-3 sm:p-4">
+          <span className="text-[10px] sm:text-xs text-[#8B8B8B] uppercase block mb-0.5 sm:mb-1">Average Win</span>
+          <span className="text-sm sm:text-lg lg:text-xl font-bold text-[#4CAF50] font-mono">{currencySymbol}{stats.avgWin}</span>
         </div>
-        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-4">
-          <span className="text-[10px] text-[#8B8B8B] uppercase block mb-1">Average Loss</span>
-          <span className="text-xl font-bold text-[#FF7A00] font-mono">{currencySymbol}{stats.avgLoss}</span>
+        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-3 sm:p-4">
+          <span className="text-[10px] sm:text-xs text-[#8B8B8B] uppercase block mb-0.5 sm:mb-1">Average Loss</span>
+          <span className="text-sm sm:text-lg lg:text-xl font-bold text-[#FF7A00] font-mono">{currencySymbol}{stats.avgLoss}</span>
         </div>
-        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-4">
-          <span className="text-[10px] text-[#8B8B8B] uppercase block mb-1">Winning Streak</span>
-          <span className="text-xl font-bold text-[#4CAF50] font-mono flex items-center gap-1">
-            <Flame className="w-4 h-4 fill-[#4CAF50]" /> {stats.winningStreak}
+        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-3 sm:p-4">
+          <span className="text-[10px] sm:text-xs text-[#8B8B8B] uppercase block mb-0.5 sm:mb-1">Winning Streak</span>
+          <span className="text-sm sm:text-lg lg:text-xl font-bold text-[#4CAF50] font-mono flex items-center gap-1">
+            <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-[#4CAF50]" /> {stats.winningStreak}
           </span>
         </div>
-        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-4">
-          <span className="text-[10px] text-[#8B8B8B] uppercase block mb-1">Losing Streak</span>
-          <span className="text-xl font-bold text-[#FF7A00] font-mono">{stats.losingStreak}</span>
+        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-3 sm:p-4">
+          <span className="text-[10px] sm:text-xs text-[#8B8B8B] uppercase block mb-0.5 sm:mb-1">Losing Streak</span>
+          <span className="text-sm sm:text-lg lg:text-xl font-bold text-[#FF7A00] font-mono">{stats.losingStreak}</span>
         </div>
-        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-4">
-          <span className="text-[10px] text-[#8B8B8B] uppercase block mb-1">Best Pair</span>
-          <span className="text-xl font-bold text-white font-mono">{stats.bestPair}</span>
+        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-3 sm:p-4">
+          <span className="text-[10px] sm:text-xs text-[#8B8B8B] uppercase block mb-0.5 sm:mb-1">Best Pair</span>
+          <span className="text-sm sm:text-lg lg:text-xl font-bold text-white font-mono">{stats.bestPair}</span>
         </div>
       </div>
 
       {/* Curves Section: Equity Curve & Drawdown Curve */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Balance & Equity Curve */}
-        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-5 space-y-3">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-3.5 sm:p-5 space-y-3">
+          <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-[#FF7A00]" /> Balance Growth Curve
           </h3>
-          <div className="h-64 w-full">
+          <div className="h-48 sm:h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={equityData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
                 <XAxis dataKey="trade" stroke="#666" tick={{ fill: '#8B8B8B', fontSize: 10 }} />
                 <YAxis stroke="#666" tick={{ fill: '#8B8B8B', fontSize: 10 }} domain={['auto', 'auto']} />
-                <Tooltip contentStyle={{ backgroundColor: '#111', borderColor: '#2D2D2D', borderRadius: '8px' }} />
+                <Tooltip contentStyle={{ backgroundColor: '#111', borderColor: '#2D2D2D', borderRadius: '8px', fontSize: '11px' }} />
                 <Area type="monotone" dataKey="balance" stroke="#4CAF50" strokeWidth={2} fill="#4CAF50" fillOpacity={0.15} />
               </AreaChart>
             </ResponsiveContainer>
@@ -139,17 +139,17 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, riskSettin
         </div>
 
         {/* Drawdown Curve */}
-        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-5 space-y-3">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-3.5 sm:p-5 space-y-3">
+          <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <TrendingDown className="w-4 h-4 text-[#FF7A00]" /> Drawdown Trajectory (%)
           </h3>
-          <div className="h-64 w-full">
+          <div className="h-48 sm:h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={equityData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
                 <XAxis dataKey="trade" stroke="#666" tick={{ fill: '#8B8B8B', fontSize: 10 }} />
                 <YAxis stroke="#666" tick={{ fill: '#8B8B8B', fontSize: 10 }} domain={[0, 'auto']} />
-                <Tooltip contentStyle={{ backgroundColor: '#111', borderColor: '#2D2D2D', borderRadius: '8px' }} />
+                <Tooltip contentStyle={{ backgroundColor: '#111', borderColor: '#2D2D2D', borderRadius: '8px', fontSize: '11px' }} />
                 <Area type="monotone" dataKey="drawdown" stroke="#FF7A00" strokeWidth={2} fill="#FF7A00" fillOpacity={0.2} />
               </AreaChart>
             </ResponsiveContainer>

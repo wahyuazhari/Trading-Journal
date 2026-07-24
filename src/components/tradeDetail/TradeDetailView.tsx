@@ -85,19 +85,19 @@ export const TradeDetailView: React.FC<TradeDetailViewProps> = ({
   return (
     <div className="trade-detail-view space-y-6 pb-16">
       {/* Top Header Controls */}
-      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-5 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-3.5 sm:p-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <button
             onClick={onBack}
-            className="p-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white rounded-lg transition-colors"
+            className="p-1.5 sm:p-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white rounded-lg transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-white font-mono">{trade.pair}</h2>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h2 className="text-base sm:text-xl font-bold text-white font-mono">{trade.pair}</h2>
               <span
-                className={`px-2.5 py-0.5 rounded text-xs font-bold uppercase ${
+                className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold uppercase ${
                   trade.direction === 'Long'
                     ? 'bg-[#4CAF50]/15 text-[#4CAF50] border border-[#4CAF50]/30'
                     : 'bg-[#FF7A00]/15 text-[#FF7A00] border border-[#FF7A00]/30'
@@ -106,7 +106,7 @@ export const TradeDetailView: React.FC<TradeDetailViewProps> = ({
                 {trade.direction}
               </span>
               <span
-                className={`px-2.5 py-0.5 rounded text-xs font-bold uppercase ${
+                className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold uppercase ${
                   trade.result === 'Win'
                     ? 'bg-[#4CAF50] text-white'
                     : trade.result === 'Loss'
@@ -117,47 +117,47 @@ export const TradeDetailView: React.FC<TradeDetailViewProps> = ({
                 {trade.status === 'Ongoing' ? 'ONGOING' : trade.result}
               </span>
             </div>
-            <p className="text-xs text-[#8B8B8B] mt-1">
-              Trade ID: <span className="font-mono text-white">#{trade.id}</span> | {trade.date} at {trade.time}
+            <p className="text-[10px] sm:text-xs text-[#8B8B8B] mt-0.5">
+              ID: <span className="font-mono text-white">#{trade.id}</span> | {trade.date} at {trade.time}
             </p>
           </div>
         </div>
 
         {/* Header Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <button
             onClick={() => onNavigate('gallery')}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white rounded-lg text-xs font-semibold transition-colors border border-[#343434]"
+            className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white rounded-lg text-[11px] sm:text-xs font-semibold transition-colors border border-[#343434]"
           >
-            <Images className="w-4 h-4 text-[#FF7A00]" /> View in Gallery
+            <Images className="w-3.5 h-3.5 text-[#FF7A00]" /> <span className="hidden xs:inline">Gallery</span>
           </button>
           <button
             onClick={() => printTradePDF(trade, currencySymbol)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white rounded-lg text-xs font-semibold transition-colors border border-[#343434]"
+            className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white rounded-lg text-[11px] sm:text-xs font-semibold transition-colors border border-[#343434]"
           >
-            <FileDown className="w-4 h-4 text-[#4CAF50]" /> Export PDF
+            <FileDown className="w-3.5 h-3.5 text-[#4CAF50]" /> <span className="hidden xs:inline">PDF</span>
           </button>
           <button
             onClick={() => onDuplicate(trade)}
-            className="p-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white rounded-lg text-xs transition-colors border border-[#343434]"
+            className="p-1.5 sm:p-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white rounded-lg text-xs transition-colors border border-[#343434]"
             title="Duplicate"
           >
-            <Copy className="w-4 h-4" />
+            <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
           <button
             onClick={() => onEdit(trade)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#FF7A00] hover:bg-[#FF8E26] text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-[#FF7A00]/20"
+            className="flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-[#FF7A00] hover:bg-[#FF8E26] text-white rounded-lg text-[11px] sm:text-xs font-bold transition-all shadow-md shadow-[#FF7A00]/20"
           >
-            <Edit3 className="w-4 h-4" /> Edit
+            <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Edit
           </button>
           <button
             onClick={() => {
               if (window.confirm(`Delete trade #${trade.id}?`)) onDelete(trade.id);
             }}
-            className="p-2 bg-[#202020] hover:bg-[#D32F2F] text-[#F44336] hover:text-white rounded-lg text-xs transition-colors border border-[#343434]"
+            className="p-1.5 sm:p-2 bg-[#202020] hover:bg-[#D32F2F] text-[#F44336] hover:text-white rounded-lg text-xs transition-colors border border-[#343434]"
             title="Delete"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         </div>
       </div>

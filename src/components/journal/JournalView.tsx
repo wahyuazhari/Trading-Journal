@@ -82,17 +82,17 @@ export const JournalView: React.FC<JournalViewProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header Controls & Filters Bar */}
-      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-5 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-3.5 sm:p-5 space-y-3 sm:space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-base font-bold text-white uppercase tracking-wider">Trading Journal Ledger</h3>
-            <p className="text-xs text-[#8B8B8B]">Showing {sortedTrades.length} of {trades.length} recorded positions</p>
+            <h3 className="text-sm sm:text-base font-bold text-white uppercase tracking-wider">Trading Journal Ledger</h3>
+            <p className="text-[10px] sm:text-xs text-[#8B8B8B]">Showing {sortedTrades.length} of {trades.length} recorded positions</p>
           </div>
           <button
             onClick={() => onOpenAddModal()}
-            className="flex items-center gap-2 bg-[#FF7A00] hover:bg-[#FF8E26] text-white font-bold text-xs px-4 py-2.5 rounded-lg transition-all shadow-md shadow-[#FF7A00]/20"
+            className="flex items-center gap-1.5 bg-[#FF7A00] hover:bg-[#FF8E26] text-white font-bold text-[11px] sm:text-xs px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-lg transition-all shadow-md shadow-[#FF7A00]/20"
           >
-            <Plus className="w-4 h-4" /> Add New Trade
+            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Add New Trade
           </button>
         </div>
 
@@ -170,29 +170,29 @@ export const JournalView: React.FC<JournalViewProps> = ({
       {/* Main Journal Table */}
       <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left text-[11px] sm:text-xs border-collapse min-w-[700px]">
             <thead>
               <tr className="bg-[#111111] text-[#8B8B8B] uppercase border-b border-[#2D2D2D] select-none">
-                <th className="py-3 px-4 cursor-pointer hover:text-white" onClick={() => toggleSort('pair')}>
+                <th className="py-2.5 px-3 cursor-pointer hover:text-white" onClick={() => toggleSort('pair')}>
                   <div className="flex items-center gap-1">Pair <ArrowUpDown className="w-3 h-3 text-[#FF7A00]" /></div>
                 </th>
-                <th className="py-3 px-4 cursor-pointer hover:text-white" onClick={() => toggleSort('date')}>
+                <th className="py-2.5 px-3 cursor-pointer hover:text-white" onClick={() => toggleSort('date')}>
                   <div className="flex items-center gap-1">Date & Time <ArrowUpDown className="w-3 h-3 text-[#FF7A00]" /></div>
                 </th>
-                <th className="py-3 px-4">Direction</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Entry</th>
-                <th className="py-3 px-4">Stop Loss</th>
-                <th className="py-3 px-4">Take Profit</th>
-                <th className="py-3 px-4 cursor-pointer hover:text-white" onClick={() => toggleSort('rr')}>
+                <th className="py-2.5 px-3">Direction</th>
+                <th className="py-2.5 px-3">Status</th>
+                <th className="py-2.5 px-3">Entry</th>
+                <th className="py-2.5 px-3">Stop Loss</th>
+                <th className="py-2.5 px-3">Take Profit</th>
+                <th className="py-2.5 px-3 cursor-pointer hover:text-white" onClick={() => toggleSort('rr')}>
                   <div className="flex items-center gap-1">RR <ArrowUpDown className="w-3 h-3 text-[#FF7A00]" /></div>
                 </th>
-                <th className="py-3 px-4">Risk %</th>
-                <th className="py-3 px-4 cursor-pointer hover:text-white" onClick={() => toggleSort('pnl')}>
+                <th className="py-2.5 px-3">Risk %</th>
+                <th className="py-2.5 px-3 cursor-pointer hover:text-white" onClick={() => toggleSort('pnl')}>
                   <div className="flex items-center gap-1">PNL ($) <ArrowUpDown className="w-3 h-3 text-[#FF7A00]" /></div>
                 </th>
-                <th className="py-3 px-4">Result</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-2.5 px-3">Result</th>
+                <th className="py-2.5 px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#2D2D2D]">
@@ -209,13 +209,13 @@ export const JournalView: React.FC<JournalViewProps> = ({
                     className="hover:bg-[#1C1C1C] transition-colors group cursor-pointer"
                     onClick={() => onSelectTrade(t.id)}
                   >
-                    <td className="py-3.5 px-4 font-bold text-white font-mono">{t.pair}</td>
-                    <td className="py-3.5 px-4 text-[#B8B8B8] font-mono">
-                      {t.date} <span className="text-[#666666] text-[10px]">{t.time}</span>
+                    <td className="py-2.5 px-3 font-bold text-white font-mono">{t.pair}</td>
+                    <td className="py-2.5 px-3 text-[#B8B8B8] font-mono">
+                      {t.date} <span className="text-[#666666] text-[9px]">{t.time}</span>
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-2.5 px-3">
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        className={`px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase ${
                           t.direction === 'Long'
                             ? 'bg-[#4CAF50]/15 text-[#4CAF50] border border-[#4CAF50]/30'
                             : 'bg-[#FF7A00]/15 text-[#FF7A00] border border-[#FF7A00]/30'
@@ -224,22 +224,22 @@ export const JournalView: React.FC<JournalViewProps> = ({
                         {t.direction}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-[#B8B8B8]">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${t.status === 'Ongoing' ? 'bg-[#4A90E2]/20 text-[#4A90E2]' : 'bg-[#202020] text-[#9E9E9E]'}`}>
+                    <td className="py-2.5 px-3 text-[#B8B8B8]">
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-semibold ${t.status === 'Ongoing' ? 'bg-[#4A90E2]/20 text-[#4A90E2]' : 'bg-[#202020] text-[#9E9E9E]'}`}>
                         {t.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-white font-mono">{t.entryPrice}</td>
-                    <td className="py-3.5 px-4 text-[#FF7A00] font-mono">{t.stopLoss}</td>
-                    <td className="py-3.5 px-4 text-[#4CAF50] font-mono">{t.takeProfit}</td>
-                    <td className="py-3.5 px-4 text-white font-mono font-bold">1 : {t.rr}</td>
-                    <td className="py-3.5 px-4 text-[#B8B8B8] font-mono">{t.riskPercent}%</td>
-                    <td className={`py-3.5 px-4 font-mono font-bold ${t.pnl >= 0 ? 'text-[#4CAF50]' : 'text-[#FF7A00]'}`}>
+                    <td className="py-2.5 px-3 text-white font-mono">{t.entryPrice}</td>
+                    <td className="py-2.5 px-3 text-[#FF7A00] font-mono">{t.stopLoss}</td>
+                    <td className="py-2.5 px-3 text-[#4CAF50] font-mono">{t.takeProfit}</td>
+                    <td className="py-2.5 px-3 text-white font-mono font-bold">1 : {t.rr}</td>
+                    <td className="py-2.5 px-3 text-[#B8B8B8] font-mono">{t.riskPercent}%</td>
+                    <td className={`py-2.5 px-3 font-mono font-bold ${t.pnl >= 0 ? 'text-[#4CAF50]' : 'text-[#FF7A00]'}`}>
                       {currencySymbol}{t.pnl.toLocaleString()}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-2.5 px-3">
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        className={`px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold ${
                           t.result === 'Win'
                             ? 'bg-[#4CAF50] text-white'
                             : t.result === 'Loss'
