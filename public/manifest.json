@@ -1,0 +1,17 @@
+{
+  "short_name": "JournalPro",
+  "name": "Trading Journal Pro",
+  "description": "Offline Professional Trading Journal & Analytics Terminal",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0A0A0A",
+  "theme_color": "#FF7A00",
+  "display": "standalone",
+  "orientation": "any"
+}

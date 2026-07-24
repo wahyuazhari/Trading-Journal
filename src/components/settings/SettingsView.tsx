@@ -122,6 +122,48 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
+      {/* PWA & Local Execution Guide */}
+      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-6 space-y-4">
+        <div className="border-b border-[#2D2D2D] pb-3">
+          <h3 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <FileText className="w-5 h-5 text-[#FF7A00]" /> Offline PWA & Local Execution Guide
+          </h3>
+          <p className="text-xs text-[#8B8B8B]">How to run and install this app 100% offline on your computer without publishing</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="bg-[#111111] p-4 rounded-xl border border-[#2D2D2D] space-y-2">
+            <h4 className="font-bold text-[#FF7A00] flex items-center gap-1.5 text-sm">
+              <span>1. Install as PWA (Recommended)</span>
+            </h4>
+            <p className="text-[#B8B8B8] leading-relaxed">
+              Install directly from your browser as a desktop or mobile application without setting up Node.js:
+            </p>
+            <ul className="list-disc list-inside text-[#8B8B8B] space-y-1 pl-1">
+              <li><strong className="text-white">Chrome / Edge (Desktop):</strong> Click the <b>Install App</b> icon in the browser address bar (top right).</li>
+              <li><strong className="text-white">Safari (Mac/iOS):</strong> Click Share → <b>Add to Home Screen</b>.</li>
+              <li><strong className="text-white">Chrome (Android):</strong> Tap Menu (3 dots) → <b>Install app / Add to Home Screen</b>.</li>
+            </ul>
+          </div>
+
+          <div className="bg-[#111111] p-4 rounded-xl border border-[#2D2D2D] space-y-2">
+            <h4 className="font-bold text-[#4CAF50] flex items-center gap-1.5 text-sm">
+              <span>2. Run Offline via Source Code (Local Node.js)</span>
+            </h4>
+            <p className="text-[#B8B8B8] leading-relaxed">
+              Run locally on your computer with Vite server:
+            </p>
+            <ol className="list-decimal list-inside text-[#8B8B8B] space-y-1 font-mono text-[11px]">
+              <li>Export project ZIP from top right menu settings</li>
+              <li>Extract ZIP & open terminal in folder</li>
+              <li>Run <code className="bg-[#202020] text-[#4CAF50] px-1 py-0.5 rounded">npm install</code></li>
+              <li>Run <code className="bg-[#202020] text-[#FF7A00] px-1 py-0.5 rounded">npm run dev</code></li>
+              <li>Open <code className="text-white">http://localhost:3000</code> in your browser</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
       {/* Backup & Data Export Section */}
       <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-6 space-y-4">
         <div className="border-b border-[#2D2D2D] pb-3">
