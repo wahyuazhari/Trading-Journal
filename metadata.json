@@ -1,0 +1,6 @@
+{
+  "name": "Trading Journal Pro",
+  "description": "Offline professional trading journal and analytics terminal for performance tracking, risk management, and screenshot analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
