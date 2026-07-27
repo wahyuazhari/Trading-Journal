@@ -79,6 +79,37 @@ export const JournalView: React.FC<JournalViewProps> = ({
     }
   };
 
+  // Export filtered trades to CSV
+  const handleExportCSV = () => {
+    if (sortedTrades.length === 0) return;
+    const headers = ['ID', 'Pair', 'Date', 'Time', 'Direction', 'Status', 'Entry', 'StopLoss', 'TakeProfit', 'RR', 'RiskPercent', 'PNL', 'Result', 'Strategy', 'Notes'];
+    const rows = sortedTrades.map((t) => [
+      t.id,
+      t.pair,
+      t.date,
+      t.time || '',
+      t.direction,
+      t.status,
+      t.entryPrice,
+      t.stopLoss,
+      t.takeProfit,
+      t.rr,
+      t.riskPercent,
+      t.pnl,
+      t.result,
+      `"${(t.analysis?.strategy || '').replace(/"/g, '""')}"`,
+      `"${(t.notes || '').replace(/"/g, '""')}"`
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `trading_journal_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header Controls & Filters Bar */}
@@ -88,12 +119,42 @@ export const JournalView: React.FC<JournalViewProps> = ({
             <h3 className="text-sm sm:text-base font-bold text-white uppercase tracking-wider">Trading Journal Ledger</h3>
             <p className="text-[10px] sm:text-xs text-[#8B8B8B]">Showing {sortedTrades.length} of {trades.length} recorded positions</p>
           </div>
-          <button
-            onClick={() => onOpenAddModal()}
-            className="flex items-center gap-1.5 bg-[#FF7A00] hover:bg-[#FF8E26] text-white font-bold text-[11px] sm:text-xs px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-lg transition-all shadow-md shadow-[#FF7A00]/20"
-          >
-            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Add New Trade
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportCSV}
+              className="px-3 py-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white font-semibold text-xs rounded-lg transition-colors border border-[#343434] cursor-pointer"
+              title="Export filtered trades to CSV"
+            >
+              Export CSV
+            </button>
+            <button
+              onClick={() => onOpenAddModal()}
+              className="flex items-center gap-1.5 bg-[#FF7A00] hover:bg-[#FF8E26] text-white font-bold text-[11px] sm:text-xs px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-lg transition-all shadow-md shadow-[#FF7A00]/20 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Add New Trade
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Filter Preset Chips */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          <span className="text-[10px] text-[#8B8B8B] uppercase font-bold mr-1">Presets:</span>
+          {[
+            { label: 'All', onClick: () => { setFilterResult('ALL'); setFilterDirection('ALL'); setFilterStatus('ALL'); } },
+            { label: 'Wins Only', onClick: () => { setFilterResult('Win'); setFilterDirection('ALL'); setFilterStatus('ALL'); } },
+            { label: 'Losses Only', onClick: () => { setFilterResult('Loss'); setFilterDirection('ALL'); setFilterStatus('ALL'); } },
+            { label: 'Longs', onClick: () => { setFilterDirection('Long'); setFilterResult('ALL'); setFilterStatus('ALL'); } },
+            { label: 'Shorts', onClick: () => { setFilterDirection('Short'); setFilterResult('ALL'); setFilterStatus('ALL'); } },
+            { label: 'Ongoing', onClick: () => { setFilterStatus('Ongoing'); setFilterResult('ALL'); setFilterDirection('ALL'); } },
+          ].map((preset, idx) => (
+            <button
+              key={idx}
+              onClick={preset.onClick}
+              className="px-2.5 py-1 bg-[#1A1A1A] hover:bg-[#252525] hover:text-white text-[#8B8B8B] text-[10px] font-semibold rounded-lg border border-[#2D2D2D] transition-colors cursor-pointer"
+            >
+              {preset.label}
+            </button>
+          ))}
         </div>
 
         {/* Search & Filter Controls Grid */}

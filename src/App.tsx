@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   NavigationPage, 
   Trade, 
@@ -31,6 +32,7 @@ import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { RiskView } from './components/risk/RiskView';
 import { SettingsView } from './components/settings/SettingsView';
 import { AddTradeModal } from './components/common/AddTradeModal';
+import { Search, Command, ArrowRight, LayoutDashboard, BookOpen, Images, BarChart3, ShieldAlert, Settings, Plus, X } from 'lucide-react';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<NavigationPage>('dashboard');
@@ -41,6 +43,8 @@ export default function App() {
   const [userSettings, setUserSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [isCmdKOpen, setIsCmdKOpen] = useState<boolean>(false);
+  const [cmdSearchQuery, setCmdSearchQuery] = useState<string>('');
   const [tradeToEdit, setTradeToEdit] = useState<Trade | null>(null);
   const [globalSearch, setGlobalSearch] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -65,12 +69,35 @@ export default function App() {
     initData();
   }, []);
 
+  // Global Keyboard Shortcuts (Ctrl+K or Cmd+K or /)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCmdKOpen((prev) => !prev);
+      } else if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        setIsCmdKOpen(true);
+      } else if (e.key === 'Escape' && isCmdKOpen) {
+        setIsCmdKOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCmdKOpen]);
+
   // Sync riskSettings currentBalance with overall trades stats automatically
   useEffect(() => {
     if (trades.length > 0) {
       const stats = calculateOverallStats(trades, riskSettings);
       if (stats.currentBalance !== riskSettings.currentBalance) {
         const updatedRisk = { ...riskSettings, currentBalance: stats.currentBalance };
+        setRiskSettings(updatedRisk);
+        saveRiskSettingsDB(updatedRisk);
+      }
+    } else {
+      if (riskSettings.currentBalance !== riskSettings.startingBalance) {
+        const updatedRisk = { ...riskSettings, currentBalance: riskSettings.startingBalance };
         setRiskSettings(updatedRisk);
         saveRiskSettingsDB(updatedRisk);
       }
@@ -85,6 +112,7 @@ export default function App() {
   const handleSelectTrade = (tradeId: string) => {
     setActiveTradeId(tradeId);
     setCurrentPage('trade-detail');
+    setIsCmdKOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -172,6 +200,18 @@ export default function App() {
     }
   };
 
+  const filteredCmdTrades = trades.filter((t) => {
+    if (!cmdSearchQuery.trim()) return true;
+    const q = cmdSearchQuery.toLowerCase();
+    return (
+      t.pair.toLowerCase().includes(q) ||
+      t.setupType.toLowerCase().includes(q) ||
+      t.direction.toLowerCase().includes(q) ||
+      t.result.toLowerCase().includes(q) ||
+      (t.tags && t.tags.some((tag) => tag.toLowerCase().includes(q)))
+    );
+  });
+
   const stats = calculateOverallStats(trades, riskSettings);
   const activeTrade = trades.find((t) => t.id === activeTradeId) || trades[0];
 
@@ -199,6 +239,7 @@ export default function App() {
         <TopNav
           currentPage={currentPage}
           onOpenAddModal={() => handleOpenAddModal()}
+          onOpenCmdK={() => setIsCmdKOpen(true)}
           riskSettings={riskSettings}
           currentDrawdown={stats.currentDrawdown}
           onSearchChange={setGlobalSearch}

@@ -229,14 +229,51 @@ export const RiskView: React.FC<RiskViewProps> = ({
             <span className="font-bold text-base text-[#FF7A00]">
               {currencySymbol}{riskDollarAmount.toLocaleString()}
             </span>
+            <span className="text-[10px] text-[#666666] block font-sans">
+              {numCalcRiskPct}% of {currencySymbol}{numCurrentBal.toLocaleString()}
+            </span>
           </div>
           <div>
-            <span className="text-[#8B8B8B] block uppercase text-[10px]">Price Delta / Risk Points</span>
+            <span className="text-[#8B8B8B] block uppercase text-[10px]">Price Delta / Stop Distance</span>
             <span className="font-bold text-base text-white">{priceDistance.toFixed(4)}</span>
+            <span className="text-[10px] text-[#666666] block font-sans">
+              Distance Entry to Stop Loss
+            </span>
           </div>
           <div>
-            <span className="text-[#8B8B8B] block uppercase text-[10px]">Calculated Position Size (Units / Lot)</span>
+            <span className="text-[#8B8B8B] block uppercase text-[10px]">Recommended Lot / Position Size</span>
             <span className="font-bold text-base text-[#4CAF50]">{positionUnits} Units</span>
+            <span className="text-[10px] text-[#4CAF50] block font-sans">
+              ≈ {(parseFloat(positionUnits) / 100000).toFixed(2)} Standard Lots (100k)
+            </span>
+          </div>
+        </div>
+
+        {/* Interactive Risk Bar Indicator */}
+        <div className="pt-2">
+          <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
+            <span className="text-[#8B8B8B]">Position Exposure Level:</span>
+            <span className={`font-bold uppercase ${
+              numCalcRiskPct <= 1.5 
+                ? 'text-[#4CAF50]' 
+                : numCalcRiskPct <= 3.0 
+                ? 'text-[#FF7A00]' 
+                : 'text-[#F44336]'
+            }`}>
+              {numCalcRiskPct <= 1.5 ? 'Conservative (Safe)' : numCalcRiskPct <= 3.0 ? 'Moderate Risk' : 'High Risk Exposure'}
+            </span>
+          </div>
+          <div className="w-full bg-[#202020] h-2 rounded-full overflow-hidden flex">
+            <div
+              className={`h-full transition-all duration-300 ${
+                numCalcRiskPct <= 1.5 
+                  ? 'bg-[#4CAF50]' 
+                  : numCalcRiskPct <= 3.0 
+                  ? 'bg-[#FF7A00]' 
+                  : 'bg-[#F44336]'
+              }`}
+              style={{ width: `${Math.min(numCalcRiskPct * 20, 100)}%` }}
+            />
           </div>
         </div>
       </div>

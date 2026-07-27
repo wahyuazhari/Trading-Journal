@@ -545,15 +545,17 @@ export function getSampleTrades(): Trade[] {
  */
 export async function loadTradesFromDB(): Promise<Trade[]> {
   const db = await getDB();
+  const isInitialized = await db.get('settings', 'is_initialized');
   let trades = await db.getAll('trades');
 
-  if (trades.length === 0) {
-    // Seed initial dataset
+  if (!isInitialized) {
+    // Seed initial dataset ONLY ONCE on very first app run
     const sampleTrades = getSampleTrades();
-    const tx = db.transaction('trades', 'readwrite');
+    const tx = db.transaction(['trades', 'settings'], 'readwrite');
     for (const t of sampleTrades) {
-      await tx.store.put(t);
+      await tx.objectStore('trades').put(t);
     }
+    await tx.objectStore('settings').put(true, 'is_initialized');
     await tx.done;
     trades = sampleTrades;
   }
@@ -583,19 +585,23 @@ export async function deleteTradeFromDB(tradeId: string): Promise<void> {
  */
 export async function clearAllTradesDB(): Promise<void> {
   const db = await getDB();
-  await db.clear('trades');
+  const tx = db.transaction(['trades', 'settings'], 'readwrite');
+  await tx.objectStore('trades').clear();
+  await tx.objectStore('settings').put(true, 'is_initialized');
+  await tx.done;
 }
 
 /**
- * Replace entire trades database (for Restore / Import)
+ * Replace entire trades database (for Restore / Import / Demo Re-seed)
  */
 export async function replaceAllTradesDB(newTrades: Trade[]): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction('trades', 'readwrite');
-  await tx.store.clear();
+  const tx = db.transaction(['trades', 'settings'], 'readwrite');
+  await tx.objectStore('trades').clear();
   for (const t of newTrades) {
-    await tx.store.put(t);
+    await tx.objectStore('trades').put(t);
   }
+  await tx.objectStore('settings').put(true, 'is_initialized');
   await tx.done;
 }
 

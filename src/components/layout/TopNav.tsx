@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, ShieldAlert, Clock, RefreshCw } from 'lucide-react';
+import { Plus, ShieldAlert, Clock } from 'lucide-react';
 import { NavigationPage, RiskSettings } from '../../types';
 
 interface TopNavProps {
   currentPage: NavigationPage;
   onOpenAddModal: () => void;
+  onOpenCmdK?: () => void;
   riskSettings: RiskSettings;
   currentDrawdown: number;
   onSearchChange?: (query: string) => void;
@@ -15,10 +16,8 @@ export const TopNav: React.FC<TopNavProps> = ({
   onOpenAddModal,
   riskSettings,
   currentDrawdown,
-  onSearchChange,
 }) => {
   const [time, setTime] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     const updateClock = () => {
@@ -49,13 +48,6 @@ export const TopNav: React.FC<TopNavProps> = ({
 
   const isDrawdownExceeded = currentDrawdown > riskSettings.maxDrawdownPercent;
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    if (onSearchChange) {
-      onSearchChange(e.target.value);
-    }
-  };
-
   return (
     <header className="h-14 lg:h-16 bg-[#101010] border-b border-[#2D2D2D] px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
       {/* Title section */}
@@ -70,20 +62,6 @@ export const TopNav: React.FC<TopNavProps> = ({
 
       {/* Middle Search & Alerts */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Search Bar */}
-        {(currentPage === 'journal' || currentPage === 'gallery') && (
-          <div className="relative w-36 sm:w-64 hidden sm:block">
-            <Search className="w-3.5 h-3.5 text-[#777777] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearch}
-              placeholder="Search pair, notes..."
-              className="w-full bg-[#111111] border border-[#2D2D2D] focus:border-[#FF7A00] rounded-lg pl-8 pr-2.5 py-1 text-xs text-white placeholder-[#777777] outline-none transition-colors"
-            />
-          </div>
-        )}
-
         {/* Drawdown Risk Warning Badge */}
         {isDrawdownExceeded && (
           <div className="flex items-center gap-1.5 bg-[#F44336]/15 border border-[#F44336]/40 text-[#F44336] px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg text-[10px] sm:text-xs font-semibold animate-pulse">
