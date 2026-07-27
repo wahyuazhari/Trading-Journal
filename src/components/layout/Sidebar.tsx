@@ -17,10 +17,24 @@ interface SidebarProps {
   currentPage: NavigationPage;
   onNavigate: (page: NavigationPage) => void;
   activeTradeId?: string | null;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate, activeTradeId }) => {
-  const [mobileOpen, setMobileOpen] = useState(false);
+export const Sidebar: React.FC<SidebarProps> = ({ 
+  currentPage, 
+  onNavigate, 
+  activeTradeId,
+  mobileOpen = false,
+  onCloseMobile
+}) => {
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  const isOpen = mobileOpen !== undefined ? mobileOpen : internalMobileOpen;
+
+  const closeMenu = () => {
+    if (onCloseMobile) onCloseMobile();
+    else setInternalMobileOpen(false);
+  };
 
   const navItems = [
     { id: 'dashboard' as NavigationPage, label: 'Dashboard', icon: LayoutDashboard },
@@ -34,45 +48,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate, activ
 
   const handleNavClick = (page: NavigationPage) => {
     onNavigate(page);
-    setMobileOpen(false);
+    closeMenu();
   };
 
   return (
     <>
-      {/* Mobile Top Navigation Bar */}
-      <div className="lg:hidden sticky top-0 z-40 bg-[#0A0A0A] border-b border-[#2D2D2D] px-4 py-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF7A00] to-[#FF8E26] flex items-center justify-center text-white shadow-md shadow-[#FF7A00]/20">
-            <TrendingUp className="w-4 h-4 stroke-[2.5]" />
-          </div>
-          <div>
-            <h1 className="text-white font-bold text-sm tracking-wide flex items-center gap-1">
-              TRADING JOURNAL <span className="text-[9px] px-1 py-0.2 rounded bg-[#FF7A00]/15 text-[#FF7A00] font-semibold border border-[#FF7A00]/30">PRO</span>
-            </h1>
-          </div>
-        </div>
-
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 text-[#8B8B8B] hover:text-white bg-[#151515] border border-[#2D2D2D] rounded-lg transition-colors"
-          aria-label="Toggle Menu"
-        >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-      </div>
-
       {/* Mobile Drawer Overlay Backdrop */}
-      {mobileOpen && (
+      {isOpen && (
         <div 
           className="lg:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm"
-          onClick={() => setMobileOpen(false)}
+          onClick={closeMenu}
         />
       )}
 
       {/* Mobile Slide-Over Drawer Container & Desktop Sidebar */}
       <aside 
         className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto w-64 bg-[#0A0A0A] border-r border-[#2D2D2D] flex flex-col h-screen select-none shrink-0 transition-transform duration-200 ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         {/* Brand Header */}
@@ -90,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate, activ
           </div>
 
           <button 
-            onClick={() => setMobileOpen(false)}
+            onClick={closeMenu}
             className="lg:hidden p-1.5 text-[#8B8B8B] hover:text-white"
           >
             <X className="w-5 h-5" />

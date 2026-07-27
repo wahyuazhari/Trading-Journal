@@ -64,13 +64,13 @@ export const RiskView: React.FC<RiskViewProps> = ({
     <div className="space-y-6 pb-16 max-w-5xl mx-auto">
       {/* Violation Alert Banner */}
       {isLimitViolated && (
-        <div className="bg-[#F44336]/10 border border-[#F44336]/40 rounded-[14px] p-5 flex items-center gap-4 text-white">
-          <div className="w-12 h-12 rounded-xl bg-[#F44336]/20 flex items-center justify-center text-[#F44336] shrink-0">
-            <AlertTriangle className="w-6 h-6" />
+        <div className="bg-[#F44336]/10 border border-[#F44336]/40 rounded-[14px] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 text-white">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#F44336]/20 flex items-center justify-center text-[#F44336] shrink-0">
+            <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h4 className="font-bold text-base text-[#F44336]">Maximum Drawdown Threshold Exceeded!</h4>
-            <p className="text-xs text-[#B8B8B8] mt-1">
+            <h4 className="font-bold text-sm sm:text-base text-[#F44336]">Maximum Drawdown Threshold Exceeded!</h4>
+            <p className="text-[11px] sm:text-xs text-[#B8B8B8] mt-1">
               Your account current drawdown ({currentDrawdown}%) has surpassed your defined limit of{' '}
               {maxDrawdownPercent}%. Standard risk management mandates reducing position sizes or pausing trading temporarily.
             </p>

@@ -68,21 +68,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     <div className="space-y-6 pb-12">
       {/* Risk Alert Warning Banner if Drawdown exceeded */}
       {isDrawdownAlert && (
-        <div className="bg-[#F44336]/10 border border-[#F44336]/40 rounded-[14px] p-4 flex items-center justify-between text-white">
+        <div className="bg-[#F44336]/10 border border-[#F44336]/40 rounded-[14px] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#F44336]/20 flex items-center justify-center text-[#F44336]">
+            <div className="w-10 h-10 rounded-xl bg-[#F44336]/20 flex items-center justify-center text-[#F44336] shrink-0">
               <ShieldAlert className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-bold text-sm text-[#F44336]">Risk Violation Warning</h4>
-              <p className="text-xs text-[#B8B8B8]">
+              <h4 className="font-bold text-xs sm:text-sm text-[#F44336]">Risk Violation Warning</h4>
+              <p className="text-[11px] sm:text-xs text-[#B8B8B8]">
                 Current drawdown ({stats.currentDrawdown}%) exceeds your max drawdown limit of {riskSettings.maxDrawdownPercent}%. Reduce risk exposure.
               </p>
             </div>
           </div>
           <button
             onClick={() => onNavigate('risk')}
-            className="px-4 py-2 bg-[#F44336] hover:bg-[#D32F2F] text-white text-xs font-bold rounded-lg transition-colors"
+            className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-[#F44336] hover:bg-[#D32F2F] text-white text-xs font-bold rounded-lg transition-colors shrink-0 self-end sm:self-auto cursor-pointer"
           >
             Adjust Risk Rules
           </button>

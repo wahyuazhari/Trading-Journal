@@ -19,10 +19,11 @@ import {
   BarChart2
 } from 'lucide-react';
 
-import { Trade, TradeChecklist, NavigationPage } from '../../types';
+import { Trade, TradeChecklist, NavigationPage, UserSettings } from '../../types';
 import { generateOfflineAIReview } from '../../services/aiReview';
 import { printTradePDF } from '../../services/export';
 import { ImageSlider } from '../common/ImageSlider';
+import { DEFAULT_CHECKLIST_ITEMS } from '../../services/db';
 
 interface TradeDetailViewProps {
   trade: Trade;
@@ -35,6 +36,7 @@ interface TradeDetailViewProps {
   onNavigate: (page: NavigationPage) => void;
   onUpdateTrade: (updatedTrade: Trade) => void;
   currencySymbol: string;
+  userSettings?: UserSettings;
 }
 
 export const TradeDetailView: React.FC<TradeDetailViewProps> = ({
@@ -48,9 +50,23 @@ export const TradeDetailView: React.FC<TradeDetailViewProps> = ({
   onNavigate,
   onUpdateTrade,
   currencySymbol,
+  userSettings,
 }) => {
   // Offline AI Review
   const aiReview = generateOfflineAIReview(trade);
+
+  const activeItems = userSettings?.checklistItems && userSettings.checklistItems.length > 0
+    ? userSettings.checklistItems
+    : DEFAULT_CHECKLIST_ITEMS;
+
+  const labelMap: Record<string, string> = {};
+  DEFAULT_CHECKLIST_ITEMS.forEach((item) => { labelMap[item.id] = item.label; });
+  activeItems.forEach((item) => { labelMap[item.id] = item.label; });
+
+  const tradeChecklistKeys = Object.keys(trade.checklist || {});
+  const allChecklistKeys = Array.from(
+    new Set([...activeItems.map((i) => i.id), ...tradeChecklistKeys])
+  );
 
   // Find previous and next trades for same pair or general timeline
   const pairTrades = allTrades.filter(t => t.pair === trade.pair);
@@ -59,10 +75,10 @@ export const TradeDetailView: React.FC<TradeDetailViewProps> = ({
   const nextTrade = currentIndex >= 0 && currentIndex < pairTrades.length - 1 ? pairTrades[currentIndex + 1] : null;
 
   // Local checklist toggle
-  const handleChecklistChange = (key: keyof TradeChecklist) => {
+  const handleChecklistChange = (key: string) => {
     const updatedChecklist = {
       ...trade.checklist,
-      [key]: !trade.checklist[key],
+      [key]: !trade.checklist?.[key],
     };
     const updatedTrade: Trade = {
       ...trade,
@@ -362,23 +378,13 @@ export const TradeDetailView: React.FC<TradeDetailViewProps> = ({
               <CheckSquare className="w-4 h-4 text-[#FF7A00]" /> Trading Checklist Verification
             </h4>
             <div className="grid grid-cols-2 gap-2 text-xs text-[#B8B8B8]">
-              {Object.entries({
-                trendConfirmed: 'Trend Confirmed',
-                entryAccordingPlan: 'Entry According Plan',
-                rrMin1to2: 'RR ≥ 1:2',
-                riskCalculated: 'Risk Calculated',
-                newsChecked: 'News Checked',
-                liquidityChecked: 'Liquidity Checked',
-                supportResistanceConfirmed: 'Support/Resistance Confirmed',
-                noFomo: 'No FOMO',
-                noRevengeTrade: 'No Revenge Trade',
-                noOvertrade: 'No Overtrade',
-              }).map(([key, label]) => {
-                const isChecked = Boolean(trade.checklist?.[key as keyof TradeChecklist]);
+              {allChecklistKeys.map((key) => {
+                const label = labelMap[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+                const isChecked = Boolean(trade.checklist?.[key]);
                 return (
                   <label
                     key={key}
-                    onClick={() => handleChecklistChange(key as keyof TradeChecklist)}
+                    onClick={() => handleChecklistChange(key)}
                     className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
                       isChecked
                         ? 'bg-[#4CAF50]/10 border-[#4CAF50]/30 text-white'
@@ -389,7 +395,7 @@ export const TradeDetailView: React.FC<TradeDetailViewProps> = ({
                       type="checkbox"
                       readOnly
                       checked={isChecked}
-                      className="accent-[#FF7A00] w-4 h-4"
+                      className="accent-[#FF7A00] w-4 h-4 cursor-pointer"
                     />
                     <span>{label}</span>
                   </label>

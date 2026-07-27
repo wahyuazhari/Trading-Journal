@@ -43,6 +43,7 @@ export default function App() {
   const [userSettings, setUserSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
   const [isCmdKOpen, setIsCmdKOpen] = useState<boolean>(false);
   const [cmdSearchQuery, setCmdSearchQuery] = useState<string>('');
   const [tradeToEdit, setTradeToEdit] = useState<Trade | null>(null);
@@ -229,8 +230,13 @@ export default function App() {
       {/* Sidebar Navigation */}
       <Sidebar
         currentPage={currentPage}
-        onNavigate={handleNavigate}
+        onNavigate={(page) => {
+          handleNavigate(page);
+          setIsMobileNavOpen(false);
+        }}
         activeTradeId={activeTradeId}
+        mobileOpen={isMobileNavOpen}
+        onCloseMobile={() => setIsMobileNavOpen(false)}
       />
 
       {/* Main Terminal Area */}
@@ -243,6 +249,7 @@ export default function App() {
           riskSettings={riskSettings}
           currentDrawdown={stats.currentDrawdown}
           onSearchChange={setGlobalSearch}
+          onToggleMobileMenu={() => setIsMobileNavOpen((prev) => !prev)}
         />
 
         {/* Dynamic Page Views */}
@@ -279,6 +286,7 @@ export default function App() {
               onNavigate={handleNavigate}
               onUpdateTrade={handleSaveTrade}
               currencySymbol={riskSettings.currencySymbol}
+              userSettings={userSettings}
             />
           )}
 
@@ -329,6 +337,8 @@ export default function App() {
         initialTrade={tradeToEdit}
         currentBalance={stats.currentBalance}
         currencySymbol={riskSettings.currencySymbol}
+        userSettings={userSettings}
+        onSaveUserSettings={handleSaveUserSettings}
       />
     </div>
   );

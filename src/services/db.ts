@@ -1,8 +1,21 @@
 import { openDB, IDBPDatabase } from 'idb';
-import { Trade, RiskSettings, UserSettings } from '../types';
+import { Trade, RiskSettings, UserSettings, ChecklistItem } from '../types';
 
 const DB_NAME = 'TradingJournalProDB';
 const DB_VERSION = 1;
+
+export const DEFAULT_CHECKLIST_ITEMS: ChecklistItem[] = [
+  { id: 'trendConfirmed', label: 'Trend Confirmed' },
+  { id: 'entryAccordingPlan', label: 'Entry According Plan' },
+  { id: 'rrMin1to2', label: 'RR ≥ 1:2' },
+  { id: 'riskCalculated', label: 'Risk Calculated' },
+  { id: 'newsChecked', label: 'News Checked' },
+  { id: 'liquidityChecked', label: 'Liquidity Checked' },
+  { id: 'supportResistanceConfirmed', label: 'Support/Resistance Confirmed' },
+  { id: 'noFomo', label: 'No FOMO' },
+  { id: 'noRevengeTrade', label: 'No Revenge Trade' },
+  { id: 'noOvertrade', label: 'No Overtrade' },
+];
 
 export const DEFAULT_RISK_SETTINGS: RiskSettings = {
   startingBalance: 10000,
@@ -19,6 +32,7 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   currency: '$',
   compactTable: false,
   autoCalculatePnL: true,
+  checklistItems: DEFAULT_CHECKLIST_ITEMS,
 };
 
 let dbPromise: Promise<IDBPDatabase> | null = null;

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Check, AlertCircle } from 'lucide-react';
-import { Trade, TradeDirection, TradeStatus, PsychologyState, TradeChecklist } from '../../types';
+import { X, Upload, Check, AlertCircle, Plus, Settings2 } from 'lucide-react';
+import { Trade, TradeDirection, TradeStatus, PsychologyState, TradeChecklist, UserSettings, ChecklistItem } from '../../types';
 import { calculateRR, calculateTradePnL } from '../../utils/calculations';
+import { DEFAULT_CHECKLIST_ITEMS } from '../../services/db';
 
 interface AddTradeModalProps {
   isOpen: boolean;
@@ -10,6 +11,8 @@ interface AddTradeModalProps {
   initialTrade?: Trade | null;
   currentBalance: number;
   currencySymbol: string;
+  userSettings?: UserSettings;
+  onSaveUserSettings?: (settings: UserSettings) => void;
 }
 
 export const AddTradeModal: React.FC<AddTradeModalProps> = ({
@@ -19,7 +22,14 @@ export const AddTradeModal: React.FC<AddTradeModalProps> = ({
   initialTrade,
   currentBalance,
   currencySymbol,
+  userSettings,
+  onSaveUserSettings,
 }) => {
+  const activeChecklistItems: ChecklistItem[] = 
+    userSettings?.checklistItems && userSettings.checklistItems.length > 0
+      ? userSettings.checklistItems
+      : DEFAULT_CHECKLIST_ITEMS;
+
   const [pair, setPair] = useState<string>('EUR/USD');
   const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [time, setTime] = useState<string>(new Date().toTimeString().slice(0, 5));
@@ -40,18 +50,9 @@ export const AddTradeModal: React.FC<AddTradeModalProps> = ({
   const [screenshotBefore, setScreenshotBefore] = useState<string | undefined>(undefined);
   const [screenshotAfter, setScreenshotAfter] = useState<string | undefined>(undefined);
 
-  const [checklist, setChecklist] = useState<TradeChecklist>({
-    trendConfirmed: true,
-    entryAccordingPlan: true,
-    rrMin1to2: true,
-    riskCalculated: true,
-    newsChecked: true,
-    liquidityChecked: true,
-    supportResistanceConfirmed: true,
-    noFomo: true,
-    noRevengeTrade: true,
-    noOvertrade: true,
-  });
+  const [checklist, setChecklist] = useState<TradeChecklist>({});
+  const [showQuickAddRule, setShowQuickAddRule] = useState(false);
+  const [quickRuleText, setQuickRuleText] = useState('');
 
   // Populate form if editing an existing trade
   useEffect(() => {
@@ -88,6 +89,13 @@ export const AddTradeModal: React.FC<AddTradeModalProps> = ({
       setNotes('');
       setScreenshotBefore(undefined);
       setScreenshotAfter(undefined);
+
+      // Default check all items
+      const initialChecklistState: TradeChecklist = {};
+      activeChecklistItems.forEach((item) => {
+        initialChecklistState[item.id] = true;
+      });
+      setChecklist(initialChecklistState);
     }
   }, [initialTrade, isOpen]);
 
@@ -117,6 +125,21 @@ export const AddTradeModal: React.FC<AddTradeModalProps> = ({
       else setScreenshotAfter(result);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleQuickAddRule = () => {
+    if (!quickRuleText.trim()) return;
+    const newRule: ChecklistItem = {
+      id: `rule_${Date.now()}`,
+      label: quickRuleText.trim(),
+    };
+    const updated = [...activeChecklistItems, newRule];
+    if (userSettings && onSaveUserSettings) {
+      onSaveUserSettings({ ...userSettings, checklistItems: updated });
+    }
+    setChecklist((prev) => ({ ...prev, [newRule.id]: true }));
+    setQuickRuleText('');
+    setShowQuickAddRule(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -421,35 +444,59 @@ export const AddTradeModal: React.FC<AddTradeModalProps> = ({
           </div>
 
           {/* Row 4: Interactive Checklist */}
-          <div className="bg-[#111111] border border-[#2D2D2D] rounded-xl p-4">
-            <h4 className="text-xs font-bold text-[#FF7A00] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Check className="w-4 h-4" /> Pre-Entry Checklist
-            </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-[#B8B8B8]">
-              {Object.entries({
-                trendConfirmed: 'Trend Confirmed',
-                entryAccordingPlan: 'Entry According Plan',
-                rrMin1to2: 'RR ≥ 1:2',
-                riskCalculated: 'Risk Calculated',
-                newsChecked: 'News Checked',
-                liquidityChecked: 'Liquidity Checked',
-                supportResistanceConfirmed: 'Support/Resistance Confirmed',
-                noFomo: 'No FOMO',
-                noRevengeTrade: 'No Revenge Trade',
-                noOvertrade: 'No Overtrade',
-              }).map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 cursor-pointer p-1 hover:text-white">
-                  <input
-                    type="checkbox"
-                    checked={checklist[key as keyof TradeChecklist]}
-                    onChange={(e) =>
-                      setChecklist({ ...checklist, [key]: e.target.checked })
-                    }
-                    className="accent-[#FF7A00] w-4 h-4 rounded bg-[#151515] border-[#2D2D2D]"
-                  />
-                  <span>{label}</span>
-                </label>
-              ))}
+          <div className="bg-[#111111] border border-[#2D2D2D] rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-[#FF7A00] uppercase tracking-wider flex items-center gap-1.5">
+                <Check className="w-4 h-4" /> Pre-Entry Checklist
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowQuickAddRule(!showQuickAddRule)}
+                className="flex items-center gap-1 px-2.5 py-1 bg-[#1A1A1A] hover:bg-[#252525] text-[#B8B8B8] hover:text-white rounded-lg text-[11px] font-medium border border-[#2D2D2D] transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 text-[#FF7A00]" />
+                <span>{showQuickAddRule ? 'Close' : 'Add Rule'}</span>
+              </button>
+            </div>
+
+            {/* Quick Add Rule Inline Form */}
+            {showQuickAddRule && (
+              <div className="flex items-center gap-2 bg-[#151515] p-2 rounded-lg border border-[#2D2D2D]">
+                <input
+                  type="text"
+                  value={quickRuleText}
+                  onChange={(e) => setQuickRuleText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleQuickAddRule(); } }}
+                  placeholder="New rule label (e.g. Risk ≤ 1%, 4H Confluence...)"
+                  className="flex-1 bg-[#0A0A0A] border border-[#2D2D2D] rounded px-2.5 py-1 text-xs text-white outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleQuickAddRule}
+                  className="px-3 py-1 bg-[#FF7A00] text-white text-xs font-bold rounded cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs text-[#B8B8B8]">
+              {activeChecklistItems.map((item) => {
+                const isChecked = Boolean(checklist[item.id]);
+                return (
+                  <label key={item.id} className="flex items-center gap-2 cursor-pointer p-1 hover:text-white">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) =>
+                        setChecklist((prev) => ({ ...prev, [item.id]: e.target.checked }))
+                      }
+                      className="accent-[#FF7A00] w-4 h-4 rounded bg-[#151515] border-[#2D2D2D] cursor-pointer"
+                    />
+                    <span className={isChecked ? 'text-white font-medium' : 'text-[#8B8B8B]'}>{item.label}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
 

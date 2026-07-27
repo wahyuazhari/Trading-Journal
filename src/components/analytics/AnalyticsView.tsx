@@ -86,6 +86,16 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, riskSettin
     });
   }
 
+  // Compact PnL formatting helper for mobile grid cells
+  const formatCompactPnL = (num: number) => {
+    const abs = Math.abs(num);
+    const sign = num >= 0 ? '+' : '-';
+    if (abs >= 10000) {
+      return `${sign}${currencySymbol}${(abs / 1000).toFixed(1)}k`;
+    }
+    return `${sign}${currencySymbol}${abs.toLocaleString()}`;
+  };
+
   return (
     <div className="space-y-6 pb-16">
       {/* Overview Metric Grid */}
@@ -205,33 +215,39 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, riskSettin
       </div>
 
       {/* Interactive Monthly Trading Calendar Heatmap */}
-      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-5 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-3.5 sm:p-5 space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <CalendarIcon className="w-4 h-4 text-[#FF7A00]" /> Monthly Performance Calendar
             </h3>
-            <p className="text-xs text-[#8B8B8B]">Daily PNL heatmap and trade frequency</p>
+            <p className="text-[11px] sm:text-xs text-[#8B8B8B]">Daily PNL heatmap and trade frequency</p>
           </div>
 
           <input
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="bg-[#111111] border border-[#2D2D2D] focus:border-[#FF7A00] text-xs text-white px-3 py-1.5 rounded-lg outline-none font-mono"
+            className="bg-[#111111] border border-[#2D2D2D] focus:border-[#FF7A00] text-xs text-white px-3 py-1.5 rounded-lg outline-none font-mono cursor-pointer self-start sm:self-auto"
           />
         </div>
 
         {/* Calendar Grid Header (Days of week) */}
-        <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold text-[#8B8B8B] uppercase border-b border-[#2D2D2D] pb-2">
-          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-[10px] sm:text-xs font-bold text-[#8B8B8B] uppercase border-b border-[#2D2D2D] pb-1.5">
+          <span><span className="sm:hidden">S</span><span className="hidden sm:inline">Sun</span></span>
+          <span><span className="sm:hidden">M</span><span className="hidden sm:inline">Mon</span></span>
+          <span><span className="sm:hidden">T</span><span className="hidden sm:inline">Tue</span></span>
+          <span><span className="sm:hidden">W</span><span className="hidden sm:inline">Wed</span></span>
+          <span><span className="sm:hidden">T</span><span className="hidden sm:inline">Thu</span></span>
+          <span><span className="sm:hidden">F</span><span className="hidden sm:inline">Fri</span></span>
+          <span><span className="sm:hidden">S</span><span className="hidden sm:inline">Sat</span></span>
         </div>
 
         {/* Calendar Day Cells */}
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {calendarDays.map((cell, idx) => {
             if (!cell) {
-              return <div key={`empty-${idx}`} className="bg-[#0c0c0e]/30 rounded-lg h-20" />;
+              return <div key={`empty-${idx}`} className="bg-[#0c0c0e]/30 rounded-lg h-12 xs:h-14 sm:h-20" />;
             }
 
             const pnl = cell.data.pnl;
@@ -247,19 +263,20 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, riskSettin
             return (
               <div
                 key={cell.dateStr}
-                className={`border p-2 rounded-xl h-20 flex flex-col justify-between transition-colors ${bgColor}`}
+                className={`border p-1 sm:p-2 rounded-lg sm:rounded-xl h-12 xs:h-14 sm:h-20 flex flex-col justify-between transition-colors overflow-hidden ${bgColor}`}
               >
-                <div className="flex items-center justify-between text-[11px] font-mono text-[#8B8B8B]">
-                  <span>{cell.day}</span>
-                  {tradeCount > 0 && <span className="text-[9px] px-1 bg-black/40 rounded">{tradeCount} t</span>}
+                <div className="flex items-center justify-between text-[9px] sm:text-[11px] font-mono text-[#8B8B8B]">
+                  <span className="font-bold text-white">{cell.day}</span>
+                  {tradeCount > 0 && <span className="text-[8px] sm:text-[9px] px-1 bg-black/40 rounded">{tradeCount}<span className="hidden sm:inline"> t</span></span>}
                 </div>
 
                 {tradeCount > 0 ? (
-                  <div className="font-mono font-bold text-xs truncate text-right">
-                    {pnl >= 0 ? '+' : ''}{currencySymbol}{pnl.toLocaleString()}
+                  <div className="font-mono font-bold text-[9px] xs:text-[10px] sm:text-xs truncate text-right">
+                    <span className="sm:hidden">{formatCompactPnL(pnl)}</span>
+                    <span className="hidden sm:inline">{pnl >= 0 ? '+' : ''}{currencySymbol}{pnl.toLocaleString()}</span>
                   </div>
                 ) : (
-                  <div className="text-[10px] text-[#666666] text-right">No Trades</div>
+                  <div className="text-[8px] sm:text-[10px] text-[#666666] text-right hidden xs:block">No Trades</div>
                 )}
               </div>
             );

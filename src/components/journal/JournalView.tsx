@@ -8,9 +8,12 @@ import {
   Edit3, 
   ArrowUpDown, 
   FileText,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Calendar,
+  Table
 } from 'lucide-react';
 import { Trade, TradeDirection, TradeResult, TradeStatus } from '../../types';
+import { JournalCalendarView } from './JournalCalendarView';
 
 interface JournalViewProps {
   trades: Trade[];
@@ -29,6 +32,7 @@ export const JournalView: React.FC<JournalViewProps> = ({
   onDeleteTrade,
   currencySymbol,
 }) => {
+  const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterPair, setFilterPair] = useState<string>('ALL');
   const [filterDirection, setFilterDirection] = useState<string>('ALL');
@@ -120,9 +124,35 @@ export const JournalView: React.FC<JournalViewProps> = ({
             <p className="text-[10px] sm:text-xs text-[#8B8B8B]">Showing {sortedTrades.length} of {trades.length} recorded positions</p>
           </div>
           <div className="flex items-center gap-2">
+            {/* View Mode Toggle: Table vs Calendar */}
+            <div className="flex items-center bg-[#111111] border border-[#2D2D2D] p-1 rounded-xl">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  viewMode === 'table'
+                    ? 'bg-[#FF7A00] text-white shadow-sm'
+                    : 'text-[#8B8B8B] hover:text-white'
+                }`}
+              >
+                <Table className="w-3.5 h-3.5" />
+                <span>Ledger Table</span>
+              </button>
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  viewMode === 'calendar'
+                    ? 'bg-[#FF7A00] text-white shadow-sm'
+                    : 'text-[#8B8B8B] hover:text-white'
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Calendar View</span>
+              </button>
+            </div>
+
             <button
               onClick={handleExportCSV}
-              className="px-3 py-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white font-semibold text-xs rounded-lg transition-colors border border-[#343434] cursor-pointer"
+              className="px-3 py-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white font-semibold text-xs rounded-lg transition-colors border border-[#343434] cursor-pointer hidden sm:block"
               title="Export filtered trades to CSV"
             >
               Export CSV
@@ -228,10 +258,19 @@ export const JournalView: React.FC<JournalViewProps> = ({
         </div>
       </div>
 
-      {/* Main Journal Table */}
-      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-[11px] sm:text-xs border-collapse min-w-[700px]">
+      {/* Main Journal View Body */}
+      {viewMode === 'calendar' ? (
+        <JournalCalendarView
+          trades={sortedTrades}
+          onSelectTrade={onSelectTrade}
+          onOpenAddModal={onOpenAddModal}
+          currencySymbol={currencySymbol}
+        />
+      ) : (
+        /* Main Journal Table */
+        <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-[11px] sm:text-xs border-collapse min-w-[700px]">
             <thead>
               <tr className="bg-[#111111] text-[#8B8B8B] uppercase border-b border-[#2D2D2D] select-none">
                 <th className="py-2.5 px-3 cursor-pointer hover:text-white" onClick={() => toggleSort('pair')}>
@@ -356,6 +395,7 @@ export const JournalView: React.FC<JournalViewProps> = ({
           </table>
         </div>
       </div>
+      )}
     </div>
   );
 };

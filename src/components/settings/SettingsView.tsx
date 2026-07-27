@@ -11,11 +11,15 @@ import {
   CheckCircle,
   FileText,
   AlertTriangle,
-  X
+  X,
+  CheckSquare,
+  Plus,
+  RotateCcw
 } from 'lucide-react';
 
-import { Trade, RiskSettings, UserSettings } from '../../types';
+import { Trade, RiskSettings, UserSettings, ChecklistItem } from '../../types';
 import { exportTradesToCSV, exportBackupJSON } from '../../services/export';
+import { DEFAULT_CHECKLIST_ITEMS } from '../../services/db';
 
 interface SettingsViewProps {
   trades: Trade[];
@@ -41,9 +45,54 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [confirmModal, setConfirmModal] = useState<'clear' | 'seed' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>(
+    userSettings.checklistItems && userSettings.checklistItems.length > 0
+      ? userSettings.checklistItems
+      : DEFAULT_CHECKLIST_ITEMS
+  );
+  const [newRuleText, setNewRuleText] = useState('');
+
   const showFeedback = (msg: string, isError = false) => {
     setMessage({ text: msg, isError });
     setTimeout(() => setMessage(null), 3500);
+  };
+
+  const handleUpdateRuleLabel = (id: string, newLabel: string) => {
+    const updated = checklistItems.map((item) =>
+      item.id === id ? { ...item, label: newLabel } : item
+    );
+    setChecklistItems(updated);
+    onSaveUserSettings({ ...userSettings, checklistItems: updated });
+  };
+
+  const handleDeleteRule = (id: string) => {
+    if (checklistItems.length <= 1) {
+      showFeedback('At least 1 checklist rule is required.', true);
+      return;
+    }
+    const updated = checklistItems.filter((item) => item.id !== id);
+    setChecklistItems(updated);
+    onSaveUserSettings({ ...userSettings, checklistItems: updated });
+    showFeedback('Checklist rule removed.');
+  };
+
+  const handleAddRule = () => {
+    if (!newRuleText.trim()) return;
+    const newItem: ChecklistItem = {
+      id: `rule_${Date.now()}`,
+      label: newRuleText.trim(),
+    };
+    const updated = [...checklistItems, newItem];
+    setChecklistItems(updated);
+    setNewRuleText('');
+    onSaveUserSettings({ ...userSettings, checklistItems: updated });
+    showFeedback('New checklist rule added!');
+  };
+
+  const handleResetChecklist = () => {
+    setChecklistItems(DEFAULT_CHECKLIST_ITEMS);
+    onSaveUserSettings({ ...userSettings, checklistItems: DEFAULT_CHECKLIST_ITEMS });
+    showFeedback('Checklist rules reset to defaults.');
   };
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -133,6 +182,70 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <span className="px-2 py-0.5 rounded bg-[#FF7A00]/20 text-[#FF7A00] text-[10px]">ACTIVE</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Pre-Entry Checklist Customization Section */}
+      <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2D2D2D] pb-3">
+          <div>
+            <h3 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <CheckSquare className="w-5 h-5 text-[#FF7A00]" /> Pre-Entry Checklist Rules
+            </h3>
+            <p className="text-xs text-[#8B8B8B]">Customize, edit, add, or remove pre-entry verification rules for your trading system</p>
+          </div>
+          <button
+            onClick={handleResetChecklist}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#202020] hover:bg-[#2A2A2A] text-[#B8B8B8] hover:text-white rounded-lg text-xs font-semibold border border-[#343434] transition-colors self-start sm:self-auto cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-[#FF7A00]" /> Reset to Defaults
+          </button>
+        </div>
+
+        {/* Existing Items Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+          {checklistItems.map((item, index) => (
+            <div
+              key={item.id}
+              className="flex items-center gap-2 bg-[#111111] border border-[#2D2D2D] focus-within:border-[#FF7A00] p-2.5 rounded-xl transition-all"
+            >
+              <span className="text-[10px] font-mono text-[#777777] w-6 text-center font-bold shrink-0">
+                #{index + 1}
+              </span>
+              <input
+                type="text"
+                value={item.label}
+                onChange={(e) => handleUpdateRuleLabel(item.id, e.target.value)}
+                placeholder="Enter rule description..."
+                className="flex-1 bg-transparent text-xs text-white font-medium outline-none"
+              />
+              <button
+                onClick={() => handleDeleteRule(item.id)}
+                className="p-1.5 text-[#777777] hover:text-[#F44336] hover:bg-[#202020] rounded-lg transition-colors cursor-pointer shrink-0"
+                title="Delete rule"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Add New Rule Input */}
+        <div className="pt-2 flex items-center gap-2">
+          <input
+            type="text"
+            value={newRuleText}
+            onChange={(e) => setNewRuleText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddRule(); } }}
+            placeholder="Add new rule (e.g. 4H HTF Bias Confirmed, Max Risk ≤ 1%...)"
+            className="flex-1 bg-[#111111] border border-[#2D2D2D] focus:border-[#FF7A00] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-[#777777] outline-none"
+          />
+          <button
+            onClick={handleAddRule}
+            className="flex items-center gap-1.5 bg-[#FF7A00] hover:bg-[#FF8E26] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md shadow-[#FF7A00]/20 shrink-0 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" /> Add Rule
+          </button>
         </div>
       </div>
 

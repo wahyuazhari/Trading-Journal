@@ -5,18 +5,12 @@ export type PsychologyState = 'Calm' | 'Fear' | 'Greed' | 'FOMO' | 'Revenge' | '
 export type SessionType = 'Asian' | 'London' | 'New York' | 'London/NY Overlap';
 export type MarketStructure = 'BOS' | 'CHOCH' | 'Ranging' | 'Trending';
 
-export interface TradeChecklist {
-  trendConfirmed: boolean;
-  entryAccordingPlan: boolean;
-  rrMin1to2: boolean;
-  riskCalculated: boolean;
-  newsChecked: boolean;
-  liquidityChecked: boolean;
-  supportResistanceConfirmed: boolean;
-  noFomo: boolean;
-  noRevengeTrade: boolean;
-  noOvertrade: boolean;
+export interface ChecklistItem {
+  id: string;
+  label: string;
 }
+
+export type TradeChecklist = Record<string, boolean>;
 
 export interface TradeAnalysis {
   trend: 'Uptrend' | 'Downtrend' | 'Sideways' | string;
@@ -86,6 +80,7 @@ export interface UserSettings {
   currency: string;
   compactTable: boolean;
   autoCalculatePnL: boolean;
+  checklistItems?: ChecklistItem[];
 }
 
 export interface AIReviewResult {
