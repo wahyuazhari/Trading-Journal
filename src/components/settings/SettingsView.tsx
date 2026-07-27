@@ -9,7 +9,9 @@ import {
   Database, 
   DollarSign, 
   CheckCircle,
-  FileText
+  FileText,
+  AlertTriangle,
+  X
 } from 'lucide-react';
 
 import { Trade, RiskSettings, UserSettings } from '../../types';
@@ -21,8 +23,8 @@ interface SettingsViewProps {
   userSettings: UserSettings;
   onSaveUserSettings: (settings: UserSettings) => void;
   onImportBackup: (data: { trades: Trade[]; riskSettings: RiskSettings }) => void;
-  onClearDatabase: () => void;
-  onSeedDemoData: () => void;
+  onClearDatabase: () => void | Promise<void>;
+  onSeedDemoData: () => void | Promise<void>;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -35,12 +37,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onSeedDemoData,
 }) => {
   const [currency, setCurrency] = useState<string>(userSettings.currency || '$');
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; isError?: boolean } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<'clear' | 'seed' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const showFeedback = (msg: string) => {
-    setMessage(msg);
-    setTimeout(() => setMessage(null), 3000);
+  const showFeedback = (msg: string, isError = false) => {
+    setMessage({ text: msg, isError });
+    setTimeout(() => setMessage(null), 3500);
   };
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -65,13 +68,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           });
           showFeedback('Database restored successfully from backup JSON!');
         } else {
-          alert('Invalid JSON structure. "trades" array missing.');
+          showFeedback('Invalid JSON structure. "trades" array missing.', true);
         }
       } catch (err) {
-        alert('Failed to parse backup JSON file.');
+        showFeedback('Failed to parse backup JSON file.', true);
       }
     };
     reader.readAsText(file);
+    e.target.value = '';
   };
 
   // Estimate storage usage
@@ -82,8 +86,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     <div className="space-y-6 pb-16 max-w-5xl mx-auto">
       {/* Toast feedback */}
       {message && (
-        <div className="bg-[#4CAF50]/15 border border-[#4CAF50]/40 text-[#4CAF50] p-4 rounded-xl text-xs font-bold flex items-center gap-2">
-          <CheckCircle className="w-4 h-4" /> {message}
+        <div className={`p-4 rounded-xl text-xs font-bold flex items-center justify-between gap-2 border ${
+          message.isError 
+            ? 'bg-[#D32F2F]/15 border-[#D32F2F]/40 text-[#F44336]' 
+            : 'bg-[#4CAF50]/15 border-[#4CAF50]/40 text-[#4CAF50]'
+        }`}>
+          <div className="flex items-center gap-2">
+            {message.isError ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+            <span>{message.text}</span>
+          </div>
+          <button onClick={() => setMessage(null)} className="opacity-70 hover:opacity-100">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -126,40 +140,50 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-6 space-y-4">
         <div className="border-b border-[#2D2D2D] pb-3">
           <h3 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <FileText className="w-5 h-5 text-[#FF7A00]" /> Offline PWA & Local Execution Guide
+            <FileText className="w-5 h-5 text-[#FF7A00]" /> Offline Smartphone & PC Guide
           </h3>
-          <p className="text-xs text-[#8B8B8B]">How to run and install this app 100% offline on your computer without publishing</p>
+          <p className="text-xs text-[#8B8B8B]">How to run this app offline on Android, iOS, or PC with local data storage</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
           <div className="bg-[#111111] p-4 rounded-xl border border-[#2D2D2D] space-y-2">
             <h4 className="font-bold text-[#FF7A00] flex items-center gap-1.5 text-sm">
-              <span>1. Install as PWA (Recommended)</span>
+              <span>1. Install as PWA on Smartphone (Best Method)</span>
             </h4>
             <p className="text-[#B8B8B8] leading-relaxed">
-              Install directly from your browser as a desktop or mobile application without setting up Node.js:
+              Install directly to your smartphone home screen without needing any local server:
             </p>
             <ul className="list-disc list-inside text-[#8B8B8B] space-y-1 pl-1">
-              <li><strong className="text-white">Chrome / Edge (Desktop):</strong> Click the <b>Install App</b> icon in the browser address bar (top right).</li>
-              <li><strong className="text-white">Safari (Mac/iOS):</strong> Click Share → <b>Add to Home Screen</b>.</li>
-              <li><strong className="text-white">Chrome (Android):</strong> Tap Menu (3 dots) → <b>Install app / Add to Home Screen</b>.</li>
+              <li><strong className="text-white">Android (Chrome):</strong> Tap <b>⋮ (3 dots)</b> → <b>Install App</b> or <b>Add to Home Screen</b>.</li>
+              <li><strong className="text-white">iPhone / iPad (Safari):</strong> Tap <b>Share icon</b> → <b>Add to Home Screen</b>.</li>
+              <li>Once added, it runs 100% offline like a native app!</li>
             </ul>
           </div>
 
           <div className="bg-[#111111] p-4 rounded-xl border border-[#2D2D2D] space-y-2">
             <h4 className="font-bold text-[#4CAF50] flex items-center gap-1.5 text-sm">
-              <span>2. Run Offline via Source Code (Local Node.js)</span>
+              <span>2. Offline Local Storage Safety</span>
             </h4>
             <p className="text-[#B8B8B8] leading-relaxed">
-              Run locally on your computer with Vite server:
+              All trade journals, metrics, and screenshots are stored directly in your browser / smartphone's <b>localStorage & IndexedDB</b>:
             </p>
-            <ol className="list-decimal list-inside text-[#8B8B8B] space-y-1 font-mono text-[11px]">
-              <li>Export project ZIP from top right menu settings</li>
-              <li>Extract ZIP & open terminal in folder</li>
-              <li>Run <code className="bg-[#202020] text-[#4CAF50] px-1 py-0.5 rounded">npm install</code></li>
-              <li>Run <code className="bg-[#202020] text-[#FF7A00] px-1 py-0.5 rounded">npm run dev</code></li>
-              <li>Open <code className="text-white">http://localhost:3000</code> in your browser</li>
-            </ol>
+            <ul className="list-disc list-inside text-[#8B8B8B] space-y-1 pl-1">
+              <li>Data persists even when closed or offline.</li>
+              <li>Use the <b>Export Data Backup (JSON)</b> button below to transfer trades between devices or keep backups.</li>
+            </ul>
+          </div>
+
+          <div className="bg-[#111111] p-4 rounded-xl border border-[#2D2D2D] space-y-2">
+            <h4 className="font-bold text-[#4A90E2] flex items-center gap-1.5 text-sm">
+              <span>3. Opening via Static index.html File</span>
+            </h4>
+            <p className="text-[#B8B8B8] leading-relaxed">
+              If opening built HTML files directly from smartphone storage (<code className="text-[#FF7A00]">file://</code>):
+            </p>
+            <ul className="list-disc list-inside text-[#8B8B8B] space-y-1 pl-1">
+              <li>Modern mobile browsers block ES modules over <code className="text-[#FF7A00]">file://</code> protocol due to CORS security.</li>
+              <li>Use a free app like <b>AWebServer</b> or <b>WebIntoApp</b> on Android to convert the folder into a standalone APK file.</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -239,30 +263,71 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-[#2D2D2D]">
           <button
-            onClick={() => {
-              if (window.confirm('Reset database with sample demo trades? Current trades will be overwritten.')) {
-                onSeedDemoData();
-                showFeedback('Sample demo dataset re-seeded!');
-              }
-            }}
+            onClick={() => setConfirmModal('seed')}
             className="px-4 py-2 bg-[#202020] hover:bg-[#2D2D2D] text-white text-xs font-semibold rounded-lg transition-colors border border-[#343434]"
           >
             Re-seed Sample Demo Trades
           </button>
 
           <button
-            onClick={() => {
-              if (window.confirm('CRITICAL WARNING: Clear all trades permanently from IndexedDB? This action cannot be undone.')) {
-                onClearDatabase();
-                showFeedback('IndexedDB database cleared!');
-              }
-            }}
+            onClick={() => setConfirmModal('clear')}
             className="flex items-center gap-2 px-5 py-2.5 bg-[#D32F2F] hover:bg-[#F44336] text-white text-xs font-bold rounded-lg transition-all"
           >
             <Trash2 className="w-4 h-4" /> Clear Entire Database
           </button>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#151515] border border-[#2D2D2D] rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-start gap-3">
+              <div className={`p-2.5 rounded-xl shrink-0 ${confirmModal === 'clear' ? 'bg-[#D32F2F]/20 text-[#F44336]' : 'bg-[#FF7A00]/20 text-[#FF7A00]'}`}>
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-white">
+                  {confirmModal === 'clear' ? 'Clear Entire Database?' : 'Re-seed Sample Demo Trades?'}
+                </h3>
+                <p className="text-xs text-[#B8B8B8] leading-relaxed">
+                  {confirmModal === 'clear'
+                    ? 'CRITICAL WARNING: This will permanently delete all trade records and logs from your local IndexedDB storage. This action cannot be undone.'
+                    : 'This will reset and overwrite your current trading journal with sample demo trade records. Existing trades will be replaced.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#2D2D2D]">
+              <button
+                onClick={() => setConfirmModal(null)}
+                className="px-4 py-2 bg-[#202020] hover:bg-[#2D2D2D] text-[#B8B8B8] hover:text-white text-xs font-semibold rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (confirmModal === 'clear') {
+                    await onClearDatabase();
+                    showFeedback('IndexedDB database cleared successfully!');
+                  } else {
+                    await onSeedDemoData();
+                    showFeedback('Sample demo dataset re-seeded successfully!');
+                  }
+                  setConfirmModal(null);
+                }}
+                className={`px-4 py-2 text-white text-xs font-bold rounded-lg transition-all ${
+                  confirmModal === 'clear'
+                    ? 'bg-[#D32F2F] hover:bg-[#F44336]'
+                    : 'bg-[#FF7A00] hover:bg-[#FF8E26]'
+                }`}
+              >
+                {confirmModal === 'clear' ? 'Yes, Clear Database' : 'Yes, Re-seed Dataset'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
