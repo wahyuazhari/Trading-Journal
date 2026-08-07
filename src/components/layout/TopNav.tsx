@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, ShieldAlert, Clock, Menu } from 'lucide-react';
+import { Plus, ShieldAlert, Clock, Menu, User as UserIcon, LogOut, Cloud } from 'lucide-react';
+import { User } from 'firebase/auth';
 import { NavigationPage, RiskSettings } from '../../types';
+import { loginWithGoogle, logoutUser } from '../../services/firebase';
 
 interface TopNavProps {
   currentPage: NavigationPage;
+  user: User | null;
   onOpenAddModal: () => void;
   onOpenCmdK?: () => void;
   riskSettings: RiskSettings;
@@ -14,12 +17,14 @@ interface TopNavProps {
 
 export const TopNav: React.FC<TopNavProps> = ({
   currentPage,
+  user,
   onOpenAddModal,
   riskSettings,
   currentDrawdown,
   onToggleMobileMenu,
 }) => {
   const [time, setTime] = useState<string>('');
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const updateClock = () => {
@@ -38,6 +43,21 @@ export const TopNav: React.FC<TopNavProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  const handleGoogleAuth = async () => {
+    if (user) {
+      await logoutUser();
+    } else {
+      setIsAuthLoading(true);
+      try {
+        await loginWithGoogle();
+      } catch (err) {
+        console.error('Login error:', err);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    }
+  };
+
   const pageTitles: Record<NavigationPage, { title: string; subtitle: string }> = {
     dashboard: { title: 'Terminal Dashboard', subtitle: 'Real-time performance metrics' },
     journal: { title: 'Trading Journal', subtitle: 'Complete log of trades' },
@@ -45,7 +65,7 @@ export const TopNav: React.FC<TopNavProps> = ({
     gallery: { title: 'Chart Gallery', subtitle: 'Visual catalog of setups' },
     analytics: { title: 'Analytics', subtitle: 'Equity curves & stats' },
     risk: { title: 'Risk Management', subtitle: 'Limits & capital protection' },
-    settings: { title: 'Settings', subtitle: 'Backup, restore & config' },
+    settings: { title: 'Settings', subtitle: 'Account, Cloud Sync & config' },
   };
 
   const isDrawdownExceeded = currentDrawdown > riskSettings.maxDrawdownPercent;
@@ -54,7 +74,6 @@ export const TopNav: React.FC<TopNavProps> = ({
     <header className="h-14 lg:h-16 bg-[#101010] border-b border-[#2D2D2D] px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
       {/* Left: Mobile Menu & Title */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-        {/* Mobile Hamburger Toggle Button */}
         <button
           onClick={onToggleMobileMenu}
           className="lg:hidden p-2 text-[#B8B8B8] hover:text-white bg-[#151515] border border-[#2D2D2D] rounded-lg transition-colors shrink-0 cursor-pointer"
@@ -68,7 +87,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             {pageTitles[currentPage]?.title || 'Trading Journal Pro'}
           </h2>
           <p className="text-[10px] sm:text-xs text-[#8B8B8B] truncate max-w-[130px] sm:max-w-none hidden sm:block">
-            {pageTitles[currentPage]?.subtitle || 'Offline Terminal'}
+            {pageTitles[currentPage]?.subtitle || 'Cloud Terminal'}
           </p>
         </div>
       </div>
@@ -84,10 +103,36 @@ export const TopNav: React.FC<TopNavProps> = ({
       {/* Right Controls */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {/* Clock */}
-        <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-[#151515] border border-[#2D2D2D] rounded-lg text-xs text-[#B8B8B8] font-mono">
+        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 bg-[#151515] border border-[#2D2D2D] rounded-lg text-xs text-[#B8B8B8] font-mono">
           <Clock className="w-3.5 h-3.5 text-[#FF7A00]" />
           <span>{time} UTC</span>
         </div>
+
+        {/* User Account Pill (Only shown when logged in) */}
+        {user && (
+          <button
+            onClick={handleGoogleAuth}
+            disabled={isAuthLoading}
+            className="flex items-center gap-2 px-2.5 py-1.5 bg-[#151515] hover:bg-[#202020] border border-[#2D2D2D] hover:border-[#3D3D3D] rounded-xl text-xs transition-all cursor-pointer shrink-0"
+            title={`Signed in as ${user.email}. Click to sign out.`}
+          >
+            {user.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={user.displayName || 'User'}
+                className="w-5 h-5 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-[#FF7A00]/20 text-[#FF7A00] flex items-center justify-center font-bold text-[10px] shrink-0">
+                {user.email ? user.email[0].toUpperCase() : 'U'}
+              </div>
+            )}
+            <span className="text-white font-medium text-xs max-w-[90px] sm:max-w-[130px] truncate hidden sm:inline">
+              {user.displayName || user.email?.split('@')[0]}
+            </span>
+            <Cloud className="w-3.5 h-3.5 text-[#4CAF50] shrink-0" />
+          </button>
+        )}
 
         {/* Add Trade Button */}
         <button
@@ -102,3 +147,4 @@ export const TopNav: React.FC<TopNavProps> = ({
     </header>
   );
 };
+

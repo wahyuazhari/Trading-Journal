@@ -14,14 +14,18 @@ import {
   X,
   CheckSquare,
   Plus,
-  RotateCcw
+  RotateCcw,
+  Cloud
 } from 'lucide-react';
+import { User } from 'firebase/auth';
 
 import { Trade, RiskSettings, UserSettings, ChecklistItem } from '../../types';
 import { exportTradesToCSV, exportBackupJSON } from '../../services/export';
 import { DEFAULT_CHECKLIST_ITEMS } from '../../services/db';
+import { AuthView } from '../common/AuthView';
 
 interface SettingsViewProps {
+  user: User | null;
   trades: Trade[];
   riskSettings: RiskSettings;
   userSettings: UserSettings;
@@ -32,6 +36,7 @@ interface SettingsViewProps {
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
+  user,
   trades,
   riskSettings,
   userSettings,
@@ -149,6 +154,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </button>
         </div>
       )}
+
+      {/* Account / Google Login Card */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-bold text-[#8B8B8B] uppercase tracking-wider flex items-center gap-2 px-1">
+          <Cloud className="w-4 h-4 text-[#FF7A00]" /> Google Account & Firestore Cloud Sync
+        </h3>
+        <AuthView user={user} />
+      </div>
 
       {/* Preferences Section */}
       <div className="bg-[#151515] border border-[#2D2D2D] rounded-[14px] p-6 space-y-4">

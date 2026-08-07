@@ -1,0 +1,37 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Profile",
+      "description": "User account profile document",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "lastLogin": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "trades": {
+      "title": "Trade Document",
+      "description": "Individual trade record stored inside user subcollection users/{userId}/trades/{tradeId}",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "pair": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "direction": { "type": "string" },
+        "status": { "type": "string" },
+        "entryPrice": { "type": "number" },
+        "stopLoss": { "type": "number" },
+        "takeProfit": { "type": "number" },
+        "exitPrice": { "type": "number" },
+        "pnl": { "type": "number" },
+        "result": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "userId", "pair", "date"]
+    }
+  }
+}

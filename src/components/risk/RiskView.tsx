@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Save, Calculator, AlertTriangle, CheckCircle } from 'lucide-react';
 import { RiskSettings } from '../../types';
 
@@ -26,6 +26,17 @@ export const RiskView: React.FC<RiskViewProps> = ({
     riskSettings.targetMonthlyReturnPercent.toString()
   );
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+
+  // Synchronize form values whenever riskSettings prop changes
+  useEffect(() => {
+    setStartingBalance(riskSettings.startingBalance.toString());
+    setCurrentBalance(riskSettings.currentBalance.toString());
+    setRiskPerTradePercent(riskSettings.riskPerTradePercent.toString());
+    setMaxDrawdownPercent(riskSettings.maxDrawdownPercent.toString());
+    setMaxDailyDrawdownPercent(riskSettings.maxDailyDrawdownPercent.toString());
+    setTargetMonthlyReturnPercent(riskSettings.targetMonthlyReturnPercent.toString());
+    setCalcRiskPct(riskSettings.riskPerTradePercent.toString());
+  }, [riskSettings]);
 
   // Position Size Calculator State
   const [calcEntry, setCalcEntry] = useState<string>('1.0850');

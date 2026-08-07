@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { User } from 'firebase/auth';
 import { 
   NavigationPage, 
   Trade, 
@@ -20,6 +21,19 @@ import {
   DEFAULT_USER_SETTINGS,
   getSampleTrades
 } from './services/db';
+import { 
+  onAuthChange, 
+  subscribeUserTrades, 
+  saveTradeToFirestore, 
+  deleteTradeFromFirestore, 
+  clearAllUserTradesFirestore, 
+  replaceAllUserTradesFirestore, 
+  seedInitialTradesIfEmpty,
+  loadRiskSettingsFromFirestore,
+  saveRiskSettingsToFirestore,
+  loadUserSettingsFromFirestore,
+  saveUserSettingsToFirestore
+} from './services/firebase';
 import { calculateOverallStats } from './utils/calculations';
 
 import { Sidebar } from './components/layout/Sidebar';
@@ -36,6 +50,7 @@ import { Search, Command, ArrowRight, LayoutDashboard, BookOpen, Images, BarChar
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<NavigationPage>('dashboard');
+  const [user, setUser] = useState<User | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [activeTradeId, setActiveTradeId] = useState<string | null>(null);
   
@@ -49,26 +64,77 @@ export default function App() {
   const [tradeToEdit, setTradeToEdit] = useState<Trade | null>(null);
   const [globalSearch, setGlobalSearch] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isConfigLoaded, setIsConfigLoaded] = useState<boolean>(false);
 
-  // Load state from IndexedDB on initial mount
+  // 1. Listen to Firebase Auth state
   useEffect(() => {
-    async function initData() {
-      try {
-        const loadedTrades = await loadTradesFromDB();
-        const loadedRisk = await loadRiskSettingsDB();
-        const loadedUser = await loadUserSettingsDB();
+    const unsubscribe = onAuthChange((currentUser) => {
+      setUser(currentUser);
+      if (!currentUser) {
+        // Fallback to IndexedDB when user is logged out
+        loadLocalData();
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
-        setTrades(loadedTrades);
-        setRiskSettings(loadedRisk);
-        setUserSettings(loadedUser);
+  // Function to load local data from IndexedDB
+  const loadLocalData = async () => {
+    try {
+      const loadedTrades = await loadTradesFromDB();
+      const loadedRisk = await loadRiskSettingsDB();
+      const loadedUser = await loadUserSettingsDB();
+
+      setTrades(loadedTrades);
+      setRiskSettings(loadedRisk);
+      setUserSettings(loadedUser);
+    } catch (err) {
+      console.error('Failed to load local data:', err);
+    } finally {
+      setIsLoading(false);
+      setIsConfigLoaded(true);
+    }
+  };
+
+  // 2. Real-time Firestore sync when user is signed in
+  useEffect(() => {
+    if (!user) return;
+
+    setIsLoading(true);
+    setIsConfigLoaded(false);
+
+    // Load user settings & risk settings from Firestore
+    async function initUserCloudConfig() {
+      if (!user) return;
+      try {
+        const cloudRisk = await loadRiskSettingsFromFirestore(user.uid);
+        const cloudUser = await loadUserSettingsFromFirestore(user.uid);
+        setRiskSettings(cloudRisk);
+        setUserSettings(cloudUser);
+
+        // Also cache locally in IndexedDB for offline support
+        saveRiskSettingsDB(cloudRisk);
+        saveUserSettingsDB(cloudUser);
+
+        // Seed initial sample trades into Firestore if brand new user
+        await seedInitialTradesIfEmpty(user.uid);
       } catch (err) {
-        console.error('Failed to load IndexedDB data:', err);
+        console.error('Failed to initialize user cloud settings:', err);
       } finally {
-        setIsLoading(false);
+        setIsConfigLoaded(true);
       }
     }
-    initData();
-  }, []);
+
+    initUserCloudConfig();
+
+    // Real-time Firestore listener for trades
+    const unsubscribeTrades = subscribeUserTrades(user.uid, (cloudTrades) => {
+      setTrades(cloudTrades);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribeTrades();
+  }, [user]);
 
   // Global Keyboard Shortcuts (Ctrl+K or Cmd+K or /)
   useEffect(() => {
@@ -87,23 +153,35 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isCmdKOpen]);
 
-  // Sync riskSettings currentBalance with overall trades stats automatically
+  // Sync riskSettings currentBalance with overall trades stats automatically (only after config is loaded)
   useEffect(() => {
+    if (!isConfigLoaded) return;
+
     if (trades.length > 0) {
       const stats = calculateOverallStats(trades, riskSettings);
       if (stats.currentBalance !== riskSettings.currentBalance) {
         const updatedRisk = { ...riskSettings, currentBalance: stats.currentBalance };
         setRiskSettings(updatedRisk);
-        saveRiskSettingsDB(updatedRisk);
+        if (user) {
+          saveRiskSettingsToFirestore(user.uid, updatedRisk);
+          saveRiskSettingsDB(updatedRisk);
+        } else {
+          saveRiskSettingsDB(updatedRisk);
+        }
       }
     } else {
       if (riskSettings.currentBalance !== riskSettings.startingBalance) {
         const updatedRisk = { ...riskSettings, currentBalance: riskSettings.startingBalance };
         setRiskSettings(updatedRisk);
-        saveRiskSettingsDB(updatedRisk);
+        if (user) {
+          saveRiskSettingsToFirestore(user.uid, updatedRisk);
+          saveRiskSettingsDB(updatedRisk);
+        } else {
+          saveRiskSettingsDB(updatedRisk);
+        }
       }
     }
-  }, [trades]);
+  }, [trades, user, isConfigLoaded]);
 
   const handleNavigate = (page: NavigationPage) => {
     setCurrentPage(page);
@@ -123,21 +201,29 @@ export default function App() {
   };
 
   const handleSaveTrade = async (savedTrade: Trade) => {
-    await saveTradeToDB(savedTrade);
-    setTrades((prev) => {
-      const existingIdx = prev.findIndex((t) => t.id === savedTrade.id);
-      if (existingIdx >= 0) {
-        const updated = [...prev];
-        updated[existingIdx] = savedTrade;
-        return updated;
-      }
-      return [savedTrade, ...prev];
-    });
+    if (user) {
+      await saveTradeToFirestore(user.uid, savedTrade);
+    } else {
+      await saveTradeToDB(savedTrade);
+      setTrades((prev) => {
+        const existingIdx = prev.findIndex((t) => t.id === savedTrade.id);
+        if (existingIdx >= 0) {
+          const updated = [...prev];
+          updated[existingIdx] = savedTrade;
+          return updated;
+        }
+        return [savedTrade, ...prev];
+      });
+    }
   };
 
   const handleDeleteTrade = async (tradeId: string) => {
-    await deleteTradeFromDB(tradeId);
-    setTrades((prev) => prev.filter((t) => t.id !== tradeId));
+    if (user) {
+      await deleteTradeFromFirestore(user.uid, tradeId);
+    } else {
+      await deleteTradeFromDB(tradeId);
+      setTrades((prev) => prev.filter((t) => t.id !== tradeId));
+    }
     if (activeTradeId === tradeId) {
       setActiveTradeId(null);
       setCurrentPage('journal');
@@ -162,56 +248,80 @@ export default function App() {
       ],
     };
 
-    await saveTradeToDB(duplicated);
-    setTrades((prev) => [duplicated, ...prev]);
+    if (user) {
+      await saveTradeToFirestore(user.uid, duplicated);
+    } else {
+      await saveTradeToDB(duplicated);
+      setTrades((prev) => [duplicated, ...prev]);
+    }
   };
 
   const handleSaveRiskSettings = async (newSettings: RiskSettings) => {
-    setRiskSettings(newSettings);
-    await saveRiskSettingsDB(newSettings);
+    const stats = calculateOverallStats(trades, newSettings);
+    const updatedWithBalance: RiskSettings = {
+      ...newSettings,
+      currentBalance: stats.currentBalance,
+    };
+
+    setRiskSettings(updatedWithBalance);
+    if (user) {
+      await saveRiskSettingsToFirestore(user.uid, updatedWithBalance);
+      await saveRiskSettingsDB(updatedWithBalance);
+    } else {
+      await saveRiskSettingsDB(updatedWithBalance);
+    }
   };
 
   const handleSaveUserSettings = async (newSettings: UserSettings) => {
     setUserSettings(newSettings);
-    await saveUserSettingsDB(newSettings);
+    if (user) {
+      await saveUserSettingsToFirestore(user.uid, newSettings);
+      await saveUserSettingsDB(newSettings);
+    } else {
+      await saveUserSettingsDB(newSettings);
+    }
   };
 
   const handleClearDatabase = async () => {
-    await clearAllTradesDB();
-    setTrades([]);
+    if (user) {
+      await clearAllUserTradesFirestore(user.uid);
+    } else {
+      await clearAllTradesDB();
+      setTrades([]);
+    }
     setActiveTradeId(null);
     setCurrentPage('dashboard');
   };
 
   const handleSeedDemoData = async () => {
     const samples = getSampleTrades();
-    await replaceAllTradesDB(samples);
-    setTrades(samples);
+    if (user) {
+      await replaceAllUserTradesFirestore(user.uid, samples);
+    } else {
+      await replaceAllTradesDB(samples);
+      setTrades(samples);
+    }
     if (samples.length > 0) setActiveTradeId(samples[0].id);
   };
 
   const handleImportBackup = async (data: { trades: Trade[]; riskSettings: RiskSettings }) => {
     if (data.trades) {
-      await replaceAllTradesDB(data.trades);
-      setTrades(data.trades);
+      if (user) {
+        await replaceAllUserTradesFirestore(user.uid, data.trades);
+      } else {
+        await replaceAllTradesDB(data.trades);
+        setTrades(data.trades);
+      }
     }
     if (data.riskSettings) {
       setRiskSettings(data.riskSettings);
-      await saveRiskSettingsDB(data.riskSettings);
+      if (user) {
+        await saveRiskSettingsToFirestore(user.uid, data.riskSettings);
+      } else {
+        await saveRiskSettingsDB(data.riskSettings);
+      }
     }
   };
-
-  const filteredCmdTrades = trades.filter((t) => {
-    if (!cmdSearchQuery.trim()) return true;
-    const q = cmdSearchQuery.toLowerCase();
-    return (
-      t.pair.toLowerCase().includes(q) ||
-      t.setupType.toLowerCase().includes(q) ||
-      t.direction.toLowerCase().includes(q) ||
-      t.result.toLowerCase().includes(q) ||
-      (t.tags && t.tags.some((tag) => tag.toLowerCase().includes(q)))
-    );
-  });
 
   const stats = calculateOverallStats(trades, riskSettings);
   const activeTrade = trades.find((t) => t.id === activeTradeId) || trades[0];
@@ -230,6 +340,7 @@ export default function App() {
       {/* Sidebar Navigation */}
       <Sidebar
         currentPage={currentPage}
+        user={user}
         onNavigate={(page) => {
           handleNavigate(page);
           setIsMobileNavOpen(false);
@@ -244,6 +355,7 @@ export default function App() {
         {/* Top Header */}
         <TopNav
           currentPage={currentPage}
+          user={user}
           onOpenAddModal={() => handleOpenAddModal()}
           onOpenCmdK={() => setIsCmdKOpen(true)}
           riskSettings={riskSettings}
@@ -317,6 +429,7 @@ export default function App() {
 
           {currentPage === 'settings' && (
             <SettingsView
+              user={user}
               trades={trades}
               riskSettings={riskSettings}
               userSettings={userSettings}
@@ -343,3 +456,4 @@ export default function App() {
     </div>
   );
 }
+
